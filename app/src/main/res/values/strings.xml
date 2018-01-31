@@ -1,0 +1,21 @@
+<resources>
+    <string name="app_name">WeatherApplication</string>
+    <string name="latitude_label">Latitude</string>
+    <string name="longitude_label">Longitude</string>
+
+    <string name="no_location_detected">
+        No location detected. Make sure location is enabled on the device.
+    </string>
+
+    <string name="permission_rationale">Location permission is needed for core functionality</string>
+    <string name="permission_denied_explanation">Permission was denied, but is needed for core
+        functionality.</string>
+    <string name="settings">Settings</string>
+    <string name="TAG_city">tag_city</string>
+    <string name="TAG_lastUpdate">tag_lastUpdate</string>
+    <string name="TAG_humidity">tag_humidity</string>
+    <string name="TAG_description">tag_description</string>
+    <string name="TAG_celsius">tag_celsius</string>
+    <string name="TAG_time">tag_time</string>
+    <string name="TAG_image">tag_image</string>
+</resources>

@@ -24,10 +24,11 @@
     <string name="weather_information">weatherInformation</string>
     <string name="humidity_description">Humidity: %d%%</string>
     <string name="weather_description">Weather: %s</string>
-    <string name="update_description">Last Updated: %s</string>
+    <string name="update_description">%s</string>
     <string name="city_description">%s, %s</string>
-    <string name="temperature_description">Temperature: %.2f °C</string>
+    <string name="temperature_description">%.2f °C</string>
     <string name="sunrise_sunset_description">Sunrise/ Sunset: %s/%s</string>
     <string name="refreshed_weather">Refreshed weather</string>
     <string name="TAG_country">country</string>
+    <string name="dont_know_location">I don\'t know your location.\n Yet!</string>
 </resources>

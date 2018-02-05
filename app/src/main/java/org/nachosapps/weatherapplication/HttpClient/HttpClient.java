@@ -1,5 +1,8 @@
 package org.nachosapps.weatherapplication.HttpClient;
 
+import android.content.Context;
+import android.widget.Toast;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -13,11 +16,12 @@ import java.net.URL;
 
 public class HttpClient {
     static String stream = null;
+    private Context mContext;
 
     public HttpClient() {
     }
 
-    static public String getHTTPData(String urlString) {
+    static public String getHTTPData(String urlString, Context mContext) {
         try {
             URL url = new URL(urlString);
             HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
@@ -37,6 +41,7 @@ public class HttpClient {
             e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
+            Toast.makeText(mContext, e.getMessage(), Toast.LENGTH_SHORT).show();
         }
         return stream;
     }

@@ -1,45 +1,84 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    android:id="@+id/main_activity_container"
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_activity_container"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
     android:background="@drawable/gradient"
+    android:orientation="vertical"
     tools:context="org.nachosapps.weatherapplication.MainActivity">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="60dp">
+
+        <TextView
+            android:id="@+id/txtLastUpdate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="center_horizontal"
+            android:text=""
+            android:textColor="@color/text_grey"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:layout_alignBottom="@id/txtCity"
+            tools:text="05 02 07:22"
+            android:paddingLeft="8dp"
+            android:paddingRight="4dp"
+            android:layout_marginBottom="5dp"
+            android:layout_alignParentBottom="true"/>
+
+        <TextView
+            android:id="@+id/txtCity"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="5dp"
+            android:gravity="left"
+            android:text=""
+            android:textColor="@color/text_grey"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="Poznan, PL"
+            android:paddingLeft="8dp"/>
+        <Button
+            android:id="@+id/btnRefresh"
+            android:layout_marginLeft="5dp"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:layout_toRightOf="@id/txtLastUpdate"
+            android:layout_alignBottom="@+id/txtLastUpdate"
+            android:drawableTop="@mipmap/btn_refresh24"
+            android:background="@android:color/transparent"
+            android:paddingBottom="5dp" />
+
+        <TextView
+            android:id="@+id/txtCelsius"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:paddingLeft="2dp"
+            android:paddingRight="2dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_toRightOf="@id/btnRefresh"
+            android:gravity="right"
+            android:text="-2,00°C"
+            android:textColor="@color/text_grey"
+            android:textSize="42sp"
+            android:textStyle="bold" />
+
+
+    </RelativeLayout>
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="match_parent"
+        android:layout_marginBottom="5dp">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="vertical" >
-
-            <TextView
-                android:id="@+id/txtCity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="5dp"
-                android:gravity="center"
-                android:text=""
-                android:textColor="@color/text_grey"
-                android:textSize="36sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/txtLastUpdate"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:gravity="center"
-                android:text=""
-                android:textColor="@color/text_grey"
-                android:textSize="18sp"
-                android:textStyle="bold" />
+            android:orientation="vertical">
 
             <ImageView
                 android:id="@+id/imageView"
@@ -80,32 +119,6 @@
                 android:textSize="30sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/txtCelsius"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:gravity="center"
-                android:text=""
-                android:textColor="@color/text_grey"
-                android:textSize="30sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/btnRefresh"
-                android:layout_width="match_parent"
-                android:layout_height="60dp"
-                android:layout_gravity="center"
-                android:layout_marginTop="20dp"
-                android:background="@drawable/buttonshape"
-                android:gravity="center_vertical|center_horizontal"
-                android:shadowColor="#A8A8A8"
-                android:shadowDx="0"
-                android:shadowDy="0"
-                android:shadowRadius="5"
-                android:text="Refresh"
-                android:textColor="@color/text_grey"
-                android:textSize="30sp" />
         </LinearLayout>
     </ScrollView>
 

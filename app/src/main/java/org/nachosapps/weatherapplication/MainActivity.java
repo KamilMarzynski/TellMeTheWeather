@@ -61,7 +61,6 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.ACCESS_COARSE_LOCATION
     };
 
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -80,11 +79,21 @@ public class MainActivity extends AppCompatActivity {
         btnRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                getLastLocation();
-                showSnackbar(getString(R.string.refreshed_weather));
+                if (checkPermissions()) {
+                    if (mLastLocation != null) {
+                        //Refresh weather only when there was any known location. Without this
+                        // conditional statement application is crashing in rare occasions when
+                        // user tries to refresh weather moments after enabling location provider.
+                        getLastLocation();
+                        showSnackbar(getString(R.string.refreshed_weather));
+                    }else{
+                        showSnackbar(getString(R.string.dont_know_location));
+                    }
+                }
             }
         });
     }
+
 
     private void initViews() {
         //Control
@@ -126,14 +135,18 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void loadSavedWeather() {
-        SharedPreferences sharedPreferences = this.getSharedPreferences(getString(R.string.weather_information),
+        SharedPreferences sharedPreferences = this.getSharedPreferences(
+                getString(R.string.weather_information),
                 Context.MODE_PRIVATE);
 
         this.txtCity.setText(sharedPreferences.getString(getString(R.string.TAG_city), null));
-        this.txtDescription.setText(sharedPreferences.getString(getString(R.string.TAG_description), null));
+        this.txtDescription.setText(
+                sharedPreferences.getString(getString(R.string.TAG_description), null));
         this.txtCelsius.setText(sharedPreferences.getString(getString(R.string.TAG_celsius), null));
-        this.txtHumidity.setText(sharedPreferences.getString(getString(R.string.TAG_humidity), null));
-        this.txtLastUpdate.setText(sharedPreferences.getString(getString(R.string.TAG_lastUpdate), null));
+        this.txtHumidity.setText(
+                sharedPreferences.getString(getString(R.string.TAG_humidity), null));
+        this.txtLastUpdate.setText(
+                sharedPreferences.getString(getString(R.string.TAG_lastUpdate), null));
         this.txtTime.setText(sharedPreferences.getString(getString(R.string.TAG_time), null));
         Picasso.with(MainActivity.this)
                 .load(sharedPreferences.getString(getString(R.string.TAG_image), null))
@@ -351,7 +364,7 @@ public class MainActivity extends AppCompatActivity {
         @Override
         protected String doInBackground(String... strings) {
             String urlString = strings[0];
-            return new HttpClient().getHTTPData(urlString);
+            return new HttpClient().getHTTPData(urlString, getApplicationContext());
         }
 
         private OpenWeatherMap parseWeatherJson(String json) {
@@ -367,18 +380,22 @@ public class MainActivity extends AppCompatActivity {
 
         void updateViews() {
             if (openWeatherMap.getSys().getCountry() != null) {
-                txtCity.setText(String.format(getString(R.string.city_description), openWeatherMap.getName(),
+                txtCity.setText(String.format(getString(R.string.city_description),
+                        openWeatherMap.getName(),
                         openWeatherMap.getSys().getCountry()));
-                txtLastUpdate.setText(String.format(getString(R.string.update_description), Common.getDateNow()));
+                txtLastUpdate.setText(
+                        String.format(getString(R.string.update_description), Common.getDateNow()));
                 txtDescription.setText(String.format(getString(R.string.weather_description),
                         openWeatherMap.getWeather().get(0).getDescription()));
                 txtHumidity.setText(
-                        String.format(getString(R.string.humidity_description), openWeatherMap.getMain().getHumidity()));
+                        String.format(getString(R.string.humidity_description),
+                                openWeatherMap.getMain().getHumidity()));
                 txtTime.setText(String.format(getString(R.string.sunrise_sunset_description),
                         Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunrise()),
                         Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunset())));
                 txtCelsius.setText(
-                        String.format(getString(R.string.temperature_description), openWeatherMap.getMain().getTemp()));
+                        String.format(getString(R.string.temperature_description),
+                                openWeatherMap.getMain().getTemp()));
                 Picasso.with(MainActivity.this)
                         .load(Common.getImage(openWeatherMap.getWeather().get(0).getIcon()))
                         .into(imageView);
@@ -391,15 +408,24 @@ public class MainActivity extends AppCompatActivity {
             SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(
                     getString(R.string.weather_information), Context.MODE_PRIVATE);
             SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString(getString(R.string.TAG_city), String.format ( getString(R.string.city_description), openWeatherMap.getName (), openWeatherMap.getSys ().getCountry () ) );
-            editor.putString(getString(R.string.TAG_lastUpdate), String.format ( getString(R.string.update_description), Common.getDateNow () ) );
-            editor.putString(getString(R.string.TAG_description), String.format ( getString(R.string.weather_description), openWeatherMap.getWeather ().get ( 0 ).getDescription () ) );
-            editor.putString(getString(R.string.TAG_humidity), String.format ( getString(R.string.humidity_description), openWeatherMap.getMain ().getHumidity () ) );
-            editor.putString(getString(R.string.TAG_time), String.format(getString(R.string.sunrise_sunset_description),
-                    Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunrise()),
-                    Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunset())));
+            editor.putString(getString(R.string.TAG_city),
+                    String.format(getString(R.string.city_description), openWeatherMap.getName(),
+                            openWeatherMap.getSys().getCountry()));
+            editor.putString(getString(R.string.TAG_lastUpdate),
+                    String.format(getString(R.string.update_description), Common.getDateNow()));
+            editor.putString(getString(R.string.TAG_description),
+                    String.format(getString(R.string.weather_description),
+                            openWeatherMap.getWeather().get(0).getDescription()));
+            editor.putString(getString(R.string.TAG_humidity),
+                    String.format(getString(R.string.humidity_description),
+                            openWeatherMap.getMain().getHumidity()));
+            editor.putString(getString(R.string.TAG_time),
+                    String.format(getString(R.string.sunrise_sunset_description),
+                            Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunrise()),
+                            Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunset())));
             editor.putString(getString(R.string.TAG_celsius),
-                    String.format (getString(R.string.temperature_description), openWeatherMap.getMain ().getTemp () ) );
+                    String.format(getString(R.string.temperature_description),
+                            openWeatherMap.getMain().getTemp()));
             editor.putString(getString(R.string.TAG_image),
                     Common.getImage(openWeatherMap.getWeather().get(0).getIcon()));
             editor.apply();

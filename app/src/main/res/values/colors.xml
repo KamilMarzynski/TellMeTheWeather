@@ -6,4 +6,10 @@
     <color name="opaque_red">#f00</color>
     <color name="translucent_red">#80ff0000</color>
     <color name="text_grey">#c0c0c0</color>
+    <color name="primaryDarkColor">#000000</color>
+    <color name="primaryWhiteColor">#ffffff</color>
+    <color name="background_holo_light">#26f3f3f3</color>
+    <color name="text_transparent_black">#CD000000</color>
+
+    <color name="black_overlay">#66000000</color>
 </resources>

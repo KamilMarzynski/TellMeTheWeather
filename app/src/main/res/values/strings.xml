@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">WeatherApplication</string>
+    <string name="app_name">Tell Me The Weather</string>
     <string name="latitude_label">Latitude</string>
     <string name="longitude_label">Longitude</string>
 
@@ -17,13 +17,10 @@
     <string name="TAG_description">tag_description</string>
     <string name="TAG_celsius">tag_celsius</string>
     <string name="TAG_time">tag_time</string>
-    <string name="TAG_image">tag_image</string>
     <string name="tagLongitude">Longitude</string>
     <string name="tagLatitude">Latitude</string>
     <string name="location_information">locationInformation</string>
     <string name="weather_information">weatherInformation</string>
-    <string name="humidity_description">Humidity: %d%%</string>
-    <string name="weather_description">Weather: %s</string>
     <string name="update_description">%s</string>
     <string name="city_description">%s, %s</string>
     <string name="temperature_description">%.2f °C</string>
@@ -31,4 +28,8 @@
     <string name="refreshed_weather">Refreshed weather</string>
     <string name="TAG_country">country</string>
     <string name="dont_know_location">I don\'t know your location.\n Yet!</string>
+
+    <string name="title_activity_fullscreen">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
 </resources>

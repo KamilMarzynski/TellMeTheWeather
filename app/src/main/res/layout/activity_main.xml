@@ -6,6 +6,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/gradient"
     android:orientation="vertical"
+    android:fitsSystemWindows="true"
     tools:context="org.nachosapps.weatherapplication.MainActivity">
 
     <RelativeLayout
@@ -17,9 +18,9 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:gravity="center_horizontal"
+            android:gravity="left"
             android:text=""
-            android:textColor="@color/text_grey"
+            android:textColor="@color/text_transparent_black"
             android:textSize="18sp"
             android:textStyle="bold"
             android:layout_alignBottom="@id/txtCity"
@@ -36,11 +37,11 @@
             android:layout_marginTop="5dp"
             android:gravity="left"
             android:text=""
-            android:textColor="@color/text_grey"
+            android:textColor="@color/text_transparent_black"
             android:textSize="18sp"
             android:textStyle="bold"
             tools:text="Poznan, PL"
-            android:paddingLeft="8dp"/>
+            android:paddingLeft="9dp"/>
         <Button
             android:id="@+id/btnRefresh"
             android:layout_marginLeft="5dp"
@@ -63,7 +64,7 @@
             android:layout_toRightOf="@id/btnRefresh"
             android:gravity="right"
             android:text="-2,00°C"
-            android:textColor="@color/text_grey"
+            android:textColor="@color/text_transparent_black"
             android:textSize="42sp"
             android:textStyle="bold" />
 
@@ -75,51 +76,18 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="5dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="vertical">
-
-            <ImageView
-                android:id="@+id/imageView"
-                android:layout_width="match_parent"
-                android:layout_height="100dp"
-                android:layout_gravity="center" />
-
             <TextView
                 android:id="@+id/txtDescription"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginTop="10dp"
                 android:gravity="center"
-                android:text=""
-                android:textColor="@color/text_grey"
-                android:textSize="30sp"
+                android:paddingHorizontal="5dp"
+                android:text="Give me a second. Rome wasn't build in a day. Your weather description is incoming."
+                android:textColor="@color/text_transparent_black"
+                android:textSize="46sp"
                 android:textStyle="bold" />
 
-            <TextView
-                android:id="@+id/txtHumidity"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:gravity="center"
-                android:text=""
-                android:textColor="@color/text_grey"
-                android:textSize="30sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/txtTime"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="20dp"
-                android:gravity="center"
-                android:text=""
-                android:textColor="@color/text_grey"
-                android:textSize="30sp"
-                android:textStyle="bold" />
-
-        </LinearLayout>
     </ScrollView>
 
 </LinearLayout>

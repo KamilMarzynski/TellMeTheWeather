@@ -1,6 +1,7 @@
 package org.nachosapps.weatherapplication;
 
 import android.Manifest;
+import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -10,17 +11,18 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -30,9 +32,13 @@ import com.google.android.gms.location.LocationResult;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.squareup.picasso.Picasso;
 
 import org.nachosapps.weatherapplication.Common.Common;
 import org.nachosapps.weatherapplication.HttpClient.HttpClient;
@@ -43,23 +49,67 @@ import java.lang.reflect.Type;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
+    /**
+     * Some older devices needs a small delay between UI widget updates
+     * and a change of the status and navigation bar.
+     */
+    private static final int UI_ANIMATION_DELAY = 300;
+    final int REQUEST_CODE_PERMISSIONS = 0;
 
-    TextView txtCity, txtLastUpdate, txtDescription, txtHumidity, txtTime, txtCelsius;
-    ImageView imageView;
+
+/*    final double COLD = 0;
+    final double HOT = 15;*/
+    private final Handler mHideHandler = new Handler();
+    protected Location mLastLocation;
+    TextView txtCity, txtLastUpdate, txtDescription, txtCelsius;
     Button btnRefresh;
     OpenWeatherMap openWeatherMap = new OpenWeatherMap();
     LocationRequest mLocationRequest;
-
     boolean mRequestingLocationUpdates;
-
-    private FusedLocationProviderClient mFusedLocationClient;
-    protected Location mLastLocation;
-
-    final int REQUEST_CODE_PERMISSIONS = 0;
+    FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
     String[] myPermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
     };
+    LocationCallback mLocationCallback = new LocationCallback() {
+        @Override
+        public void onLocationResult(LocationResult locationResult) {
+            for (Location location : locationResult.getLocations()) {
+                Log.i(TAG, "Location: " + location.getLatitude() + " " + location.getLongitude());
+                mLastLocation = location;
+            }
+            new GetWeather().execute(Common.apiRequest(
+                    String.valueOf(locationResult.getLastLocation().getLatitude()),
+                    String.valueOf(locationResult.getLastLocation().getLongitude())));
+        }
+    };
+    private FusedLocationProviderClient mFusedLocationClient;
+    private View mContentView;
+    private final Runnable mHidePart2Runnable = new Runnable() {
+        @SuppressLint("InlinedApi")
+        @Override
+        public void run() {
+            // Delayed removal of status and navigation bar
+
+            // Note that some of these constants are new as of API 16 (Jelly Bean)
+            // and API 19 (KitKat). It is safe to use them, as they are inlined
+            // at compile-time and do nothing on earlier devices.
+            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
+                    | View.SYSTEM_UI_FLAG_FULLSCREEN
+                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
+        }
+    };
+    private boolean mVisible;
+    private final Runnable mHideRunnable = new Runnable() {
+        @Override
+        public void run() {
+            hide();
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
 
         initViews();
 
+        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
 
         if (!checkPermissions()) {
             requestPermissions();
@@ -86,40 +137,89 @@ public class MainActivity extends AppCompatActivity {
                         // user tries to refresh weather moments after enabling location provider.
                         getLastLocation();
                         showSnackbar(getString(R.string.refreshed_weather));
-                    }else{
+                    } else {
                         showSnackbar(getString(R.string.dont_know_location));
                     }
                 }
             }
         });
+
+
+        mVisible = true;
+        mContentView = findViewById(R.id.main_activity_container);
+
+
+        // Set up the user interaction to manually show or hide the system UI.
+        mContentView.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                toggle();
+            }
+        });
+
+        // Upon interacting with UI controls, delay any scheduled hide()
+        // operations to prevent the jarring behavior of controls going away
+        // while interacting with the UI.
+
     }
 
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+
+        // Trigger the initial hide() shortly after the activity has been
+        // created, to briefly hint to the user that UI controls
+        // are available.
+        delayedHide(100);
+    }
+
+    private void toggle() {
+        if (mVisible) {
+            hide();
+        } else {
+            show();
+        }
+    }
+
+    private void hide() {
+        // Hide UI first
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+        mVisible = false;
+
+        // Schedule a runnable to remove the status and navigation bar after a delay
+        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
+    }
+
+    @SuppressLint("InlinedApi")
+    private void show() {
+        // Show the system bar
+        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+        mVisible = true;
+
+        // Schedule a runnable to display UI elements after a delay
+        mHideHandler.removeCallbacks(mHidePart2Runnable);
+    }
+
+    /**
+     * Schedules a call to hide() in delay milliseconds, canceling any
+     * previously scheduled calls.
+     */
+    private void delayedHide(int delayMillis) {
+        mHideHandler.removeCallbacks(mHideRunnable);
+        mHideHandler.postDelayed(mHideRunnable, delayMillis);
+    }
 
     private void initViews() {
-        //Control
         txtCity = findViewById(R.id.txtCity);
         txtCelsius = findViewById(R.id.txtCelsius);
         txtDescription = findViewById(R.id.txtDescription);
-        txtHumidity = findViewById(R.id.txtHumidity);
         txtLastUpdate = findViewById(R.id.txtLastUpdate);
-        txtTime = findViewById(R.id.txtTime);
-        imageView = findViewById(R.id.imageView);
         btnRefresh = findViewById(R.id.btnRefresh);
-        mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
     }
-
-    LocationCallback mLocationCallback = new LocationCallback() {
-        @Override
-        public void onLocationResult(LocationResult locationResult) {
-            for (Location location : locationResult.getLocations()) {
-                Log.i(TAG, "Location: " + location.getLatitude() + " " + location.getLongitude());
-                mLastLocation = location;
-            }
-            new GetWeather().execute(Common.apiRequest(
-                    String.valueOf(locationResult.getLastLocation().getLatitude()),
-                    String.valueOf(locationResult.getLastLocation().getLongitude())));
-        }
-    };
 
     void createLocationRequest() {
         mLocationRequest = new LocationRequest();
@@ -140,17 +240,24 @@ public class MainActivity extends AppCompatActivity {
                 Context.MODE_PRIVATE);
 
         this.txtCity.setText(sharedPreferences.getString(getString(R.string.TAG_city), null));
-        this.txtDescription.setText(
-                sharedPreferences.getString(getString(R.string.TAG_description), null));
         this.txtCelsius.setText(sharedPreferences.getString(getString(R.string.TAG_celsius), null));
-        this.txtHumidity.setText(
-                sharedPreferences.getString(getString(R.string.TAG_humidity), null));
         this.txtLastUpdate.setText(
                 sharedPreferences.getString(getString(R.string.TAG_lastUpdate), null));
-        this.txtTime.setText(sharedPreferences.getString(getString(R.string.TAG_time), null));
-        Picasso.with(MainActivity.this)
-                .load(sharedPreferences.getString(getString(R.string.TAG_image), null))
-                .into(imageView);
+
+        DatabaseReference mRef = mDatabase.getReference(sharedPreferences.getString(getString(R
+                .string.TAG_description), "could_not_load_weather"));
+
+        mRef.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                String description = dataSnapshot.getValue(String.class);
+                txtDescription.setText(Common.descritpionRandomizer(description));
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+            }
+        });
     }
 
 
@@ -358,7 +465,6 @@ public class MainActivity extends AppCompatActivity {
             openWeatherMap = parseWeatherJson(json);
             updateViews();
             saveWeatherInfo();
-
         }
 
         @Override
@@ -380,25 +486,41 @@ public class MainActivity extends AppCompatActivity {
 
         void updateViews() {
             if (openWeatherMap.getSys().getCountry() != null) {
+
                 txtCity.setText(String.format(getString(R.string.city_description),
                         openWeatherMap.getName(),
                         openWeatherMap.getSys().getCountry()));
+
                 txtLastUpdate.setText(
                         String.format(getString(R.string.update_description), Common.getDateNow()));
-                txtDescription.setText(String.format(getString(R.string.weather_description),
-                        openWeatherMap.getWeather().get(0).getDescription()));
-                txtHumidity.setText(
-                        String.format(getString(R.string.humidity_description),
-                                openWeatherMap.getMain().getHumidity()));
-                txtTime.setText(String.format(getString(R.string.sunrise_sunset_description),
-                        Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunrise()),
-                        Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunset())));
+
+                /*
+                Each field in database has certain formula depending on weather. The formula
+                looks as follows: typeOfWeather_dayOrNight_typeOfTemperature(cold/moderate/hot).
+                Each time the view is updated call is made and users gets new description
+                matching current weather and daytime. Each field in database contains more than
+                one description, which is chosen randomly when it comes to update views.
+                 */
+
+                DatabaseReference mRef = mDatabase.getReference(openWeatherMap.getWeather().get(0)
+                        .getMain() + "_" + Common.timeOfTheDay(openWeatherMap.getSys().getSunrise(),
+                        openWeatherMap.getSys().getSunset()) + "_" + Common.typeOfTemperature(
+                        openWeatherMap.getMain().getTemp()));
+
+                mRef.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        String description = dataSnapshot.getValue(String.class);
+                        txtDescription.setText(Common.descritpionRandomizer(description));
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+                    }
+                });
                 txtCelsius.setText(
                         String.format(getString(R.string.temperature_description),
                                 openWeatherMap.getMain().getTemp()));
-                Picasso.with(MainActivity.this)
-                        .load(Common.getImage(openWeatherMap.getWeather().get(0).getIcon()))
-                        .into(imageView);
             } else {
                 loadSavedWeather();
             }
@@ -413,22 +535,15 @@ public class MainActivity extends AppCompatActivity {
                             openWeatherMap.getSys().getCountry()));
             editor.putString(getString(R.string.TAG_lastUpdate),
                     String.format(getString(R.string.update_description), Common.getDateNow()));
-            editor.putString(getString(R.string.TAG_description),
-                    String.format(getString(R.string.weather_description),
-                            openWeatherMap.getWeather().get(0).getDescription()));
-            editor.putString(getString(R.string.TAG_humidity),
-                    String.format(getString(R.string.humidity_description),
-                            openWeatherMap.getMain().getHumidity()));
-            editor.putString(getString(R.string.TAG_time),
-                    String.format(getString(R.string.sunrise_sunset_description),
-                            Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunrise()),
-                            Common.unixTimeStampToDateTime(openWeatherMap.getSys().getSunset())));
             editor.putString(getString(R.string.TAG_celsius),
                     String.format(getString(R.string.temperature_description),
                             openWeatherMap.getMain().getTemp()));
-            editor.putString(getString(R.string.TAG_image),
-                    Common.getImage(openWeatherMap.getWeather().get(0).getIcon()));
-            editor.apply();
+            editor.putString(getString(R.string.TAG_description),
+                    openWeatherMap.getWeather().get(0)
+                            .getMain() + "_" + Common.timeOfTheDay(openWeatherMap.getSys()
+                                    .getSunrise(),
+                            openWeatherMap.getSys().getSunset()) + "_" + Common.typeOfTemperature(
+                            openWeatherMap.getMain().getTemp()));
         }
     }
 }

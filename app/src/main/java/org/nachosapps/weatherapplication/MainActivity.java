@@ -224,7 +224,7 @@ public class MainActivity extends AppCompatActivity {
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(60000 * 60); // one hour interval
         mLocationRequest.setFastestInterval(60000 * 60);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -346,6 +346,31 @@ public class MainActivity extends AppCompatActivity {
         super.onResume();
         if (mRequestingLocationUpdates) {
             startLocationUpdates();
+
+            //After prompting user to allow localization onResume will be called and this should
+            // allow to immediately show weather
+            if (!checkPermissions()) {
+                requestPermissions();
+            } else {
+                getLastLocation();
+            }
+        }
+    }
+
+    private void startLocationUpdates() {
+        if (android.os.Build.VERSION.SDK_INT >= 23) {
+            int fineLocationPermission = ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION);
+            int coarseLocationPermission = ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION);
+
+            if (fineLocationPermission != PackageManager.PERMISSION_GRANTED
+                    && coarseLocationPermission != PackageManager.PERMISSION_GRANTED) {
+                this.requestPermissions(myPermissions, REQUEST_CODE_PERMISSIONS
+                );
+                mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback,
+                        Looper.myLooper());
+            }
         }
     }
 
@@ -376,22 +401,6 @@ public class MainActivity extends AppCompatActivity {
                 .setAction(getString(actionStringId), listener).show();
     }
 
-    private void startLocationUpdates() {
-        if (android.os.Build.VERSION.SDK_INT >= 23) {
-            int fineLocationPermission = ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION);
-            int coarseLocationPermission = ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION);
-
-            if (fineLocationPermission != PackageManager.PERMISSION_GRANTED
-                    && coarseLocationPermission != PackageManager.PERMISSION_GRANTED) {
-                this.requestPermissions(myPermissions, REQUEST_CODE_PERMISSIONS
-                );
-                mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback,
-                        Looper.myLooper());
-            }
-        }
-    }
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
@@ -461,8 +470,8 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             openWeatherMap = parseWeatherJson(json);
-            updateViews();
             saveWeatherInfo();
+            updateViews();
         }
 
         @Override

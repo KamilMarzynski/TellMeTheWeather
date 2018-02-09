@@ -23,12 +23,13 @@
             android:textColor="@color/text_transparent_black"
             android:textSize="18sp"
             android:textStyle="bold"
-            android:layout_alignBottom="@id/txtCity"
-            tools:text="05 02 07:22"
-            android:paddingLeft="8dp"
+            tools:text="05 02 2017 07:22"
+            android:paddingLeft="4dp"
             android:paddingRight="4dp"
             android:layout_marginBottom="5dp"
-            android:layout_alignParentBottom="true"/>
+            android:layout_toRightOf="@id/btnRefresh"
+            android:layout_alignParentBottom="true"
+            />
 
         <TextView
             android:id="@+id/txtCity"
@@ -41,17 +42,20 @@
             android:textSize="18sp"
             android:textStyle="bold"
             tools:text="Poznan, PL"
-            android:paddingLeft="9dp"/>
+            android:layout_marginStart="7dp"
+            android:layout_marginLeft="7dp" />
         <Button
             android:id="@+id/btnRefresh"
-            android:layout_marginLeft="5dp"
+            android:layout_marginStart="5dp"
             android:layout_width="24dp"
             android:layout_height="24dp"
-            android:layout_toRightOf="@id/txtLastUpdate"
-            android:layout_alignBottom="@+id/txtLastUpdate"
             android:drawableTop="@mipmap/btn_refresh24"
             android:background="@android:color/transparent"
-            android:paddingBottom="5dp" />
+            android:layout_alignBottom="@id/txtLastUpdate"
+            android:layout_marginLeft="5dp"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            />
 
         <TextView
             android:id="@+id/txtCelsius"
@@ -66,7 +70,9 @@
             android:text="-2,00°C"
             android:textColor="@color/text_transparent_black"
             android:textSize="42sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:layout_alignParentEnd="true"
+            android:layout_toEndOf="@id/btnRefresh" />
 
 
     </RelativeLayout>
@@ -76,17 +82,17 @@
         android:layout_height="match_parent"
         android:layout_marginBottom="5dp">
 
-            <TextView
-                android:id="@+id/txtDescription"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:layout_marginTop="10dp"
-                android:gravity="center"
-                android:paddingHorizontal="5dp"
-                android:text="Give me a second. Rome wasn't build in a day. Your weather description is incoming."
-                android:textColor="@color/text_transparent_black"
-                android:textSize="46sp"
-                android:textStyle="bold" />
+        <TextView
+            android:id="@+id/txtDescription"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:paddingHorizontal="5dp"
+            android:text="Give me a second. Rome wasn't build in a day. Your weather description is incoming."
+            android:textColor="@color/text_transparent_black"
+            android:textSize="46sp"
+            android:textStyle="bold"
+            tools:targetApi="o" />
 
     </ScrollView>
 

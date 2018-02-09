@@ -57,8 +57,6 @@ public class MainActivity extends AppCompatActivity {
     final int REQUEST_CODE_PERMISSIONS = 0;
 
 
-/*    final double COLD = 0;
-    final double HOT = 15;*/
     private final Handler mHideHandler = new Handler();
     protected Location mLastLocation;
     TextView txtCity, txtLastUpdate, txtDescription, txtCelsius;
@@ -134,7 +132,8 @@ public class MainActivity extends AppCompatActivity {
                     if (mLastLocation != null) {
                         //Refresh weather only when there was any known location. Without this
                         // conditional statement application is crashing in rare occasions when
-                        // user tries to refresh weather moments after enabling location provider.
+                        // user tries to refresh weather moments after enabling localization
+                        // function.
                         getLastLocation();
                         showSnackbar(getString(R.string.refreshed_weather));
                     } else {
@@ -305,7 +304,6 @@ public class MainActivity extends AppCompatActivity {
         // request previously, but didn't check the "Don't ask again" checkbox.
         if (shouldProvideRationale) {
             Log.i(TAG, "Displaying permission rationale to provide additional context.");
-
             showSnackbar(R.string.permission_rationale, android.R.string.ok,
                     new View.OnClickListener() {
                         @Override

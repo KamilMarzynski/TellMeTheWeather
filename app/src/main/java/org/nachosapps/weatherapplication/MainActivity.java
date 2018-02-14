@@ -24,6 +24,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
@@ -69,6 +70,7 @@ public class MainActivity extends AppCompatActivity {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
     };
+
     LocationCallback mLocationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
@@ -77,12 +79,14 @@ public class MainActivity extends AppCompatActivity {
                 mLastLocation = location;
             }
             new GetWeather().execute(Common.apiRequest(
-                    String.valueOf(locationResult.getLastLocation().getLatitude()),
-                    String.valueOf(locationResult.getLastLocation().getLongitude())));
+                    String.valueOf(mLastLocation.getLatitude()),
+                    String.valueOf(mLastLocation.getLongitude())));
         }
     };
+
     private FusedLocationProviderClient mFusedLocationClient;
     private View mContentView;
+
     private final Runnable mHidePart2Runnable = new Runnable() {
         @SuppressLint("InlinedApi")
         @Override
@@ -116,7 +120,10 @@ public class MainActivity extends AppCompatActivity {
 
         initViews();
 
+        // loadSavedWeather(); should be called here?
+
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
+
 
         if (!checkPermissions()) {
             requestPermissions();
@@ -134,15 +141,18 @@ public class MainActivity extends AppCompatActivity {
                         // conditional statement application is crashing in rare occasions when
                         // user tries to refresh weather moments after enabling localization
                         // function.
+                        createLocationRequest();
                         getLastLocation();
-                        showSnackbar(getString(R.string.refreshed_weather));
+                        Toast.makeText(getApplicationContext(),
+                                getString(R.string.refreshed_weather), Toast
+                                        .LENGTH_SHORT).show();
                     } else {
-                        showSnackbar(getString(R.string.dont_know_location));
+                        Toast.makeText(getApplicationContext(), getString(R.string
+                                .dont_know_location), Toast.LENGTH_SHORT).show();
                     }
                 }
             }
         });
-
 
         mVisible = true;
         mContentView = findViewById(R.id.main_activity_container);
@@ -155,11 +165,20 @@ public class MainActivity extends AppCompatActivity {
                 toggle();
             }
         });
-
         // Upon interacting with UI controls, delay any scheduled hide()
         // operations to prevent the jarring behavior of controls going away
         // while interacting with the UI.
+    }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if (!checkPermissions()) {
+            requestPermissions();
+        } else {
+            createLocationRequest();
+            getLastLocation();
+        }
     }
 
     @Override
@@ -172,44 +191,49 @@ public class MainActivity extends AppCompatActivity {
         delayedHide(100);
     }
 
-    private void toggle() {
-        if (mVisible) {
-            hide();
+    @Override
+    protected void onPause() {
+        super.onPause();
+        stopLocationUpdates();
+    }
+
+    private void stopLocationUpdates() {
+        if (mFusedLocationClient != null) {
+            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (mRequestingLocationUpdates) {
+            startLocationUpdates();
+        }
+        //After prompting user to allow localization onResume will be called and this should
+        // allow to immediately show weather
+        if (!checkPermissions()) {
+            requestPermissions();
         } else {
-            show();
+            createLocationRequest();
+            getLastLocation();
         }
     }
 
-    private void hide() {
-        // Hide UI first
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
+    private void startLocationUpdates() {
+        if (android.os.Build.VERSION.SDK_INT >= 23) {
+            int fineLocationPermission = ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_FINE_LOCATION);
+            int coarseLocationPermission = ActivityCompat.checkSelfPermission(this,
+                    Manifest.permission.ACCESS_COARSE_LOCATION);
+
+            if (fineLocationPermission != PackageManager.PERMISSION_GRANTED
+                    && coarseLocationPermission != PackageManager.PERMISSION_GRANTED) {
+                this.requestPermissions(myPermissions, REQUEST_CODE_PERMISSIONS
+                );
+                mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback,
+                        Looper.myLooper());
+            }
         }
-        mVisible = false;
-
-        // Schedule a runnable to remove the status and navigation bar after a delay
-        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
-    }
-
-    @SuppressLint("InlinedApi")
-    private void show() {
-        // Show the system bar
-        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        mVisible = true;
-
-        // Schedule a runnable to display UI elements after a delay
-        mHideHandler.removeCallbacks(mHidePart2Runnable);
-    }
-
-    /**
-     * Schedules a call to hide() in delay milliseconds, canceling any
-     * previously scheduled calls.
-     */
-    private void delayedHide(int delayMillis) {
-        mHideHandler.removeCallbacks(mHideRunnable);
-        mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 
     private void initViews() {
@@ -224,7 +248,7 @@ public class MainActivity extends AppCompatActivity {
         mLocationRequest = new LocationRequest();
         mLocationRequest.setInterval(60000 * 60); // one hour interval
         mLocationRequest.setFastestInterval(60000 * 60);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 == PackageManager.PERMISSION_GRANTED) {
@@ -289,6 +313,7 @@ public class MainActivity extends AppCompatActivity {
                 });
     }
 
+
     private boolean checkPermissions() {
         int permissionState = ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_COARSE_LOCATION);
@@ -327,80 +352,6 @@ public class MainActivity extends AppCompatActivity {
                 new String[]{Manifest.permission.ACCESS_COARSE_LOCATION},
                 REQUEST_CODE_PERMISSIONS);
     }
-
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        stopLocationUpdates();
-    }
-
-    private void stopLocationUpdates() {
-        if (mFusedLocationClient != null) {
-            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        if (mRequestingLocationUpdates) {
-            startLocationUpdates();
-
-            //After prompting user to allow localization onResume will be called and this should
-            // allow to immediately show weather
-            if (!checkPermissions()) {
-                requestPermissions();
-            } else {
-                getLastLocation();
-            }
-        }
-    }
-
-    private void startLocationUpdates() {
-        if (android.os.Build.VERSION.SDK_INT >= 23) {
-            int fineLocationPermission = ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_FINE_LOCATION);
-            int coarseLocationPermission = ActivityCompat.checkSelfPermission(this,
-                    Manifest.permission.ACCESS_COARSE_LOCATION);
-
-            if (fineLocationPermission != PackageManager.PERMISSION_GRANTED
-                    && coarseLocationPermission != PackageManager.PERMISSION_GRANTED) {
-                this.requestPermissions(myPermissions, REQUEST_CODE_PERMISSIONS
-                );
-                mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback,
-                        Looper.myLooper());
-            }
-        }
-    }
-
-    /**
-     * Shows a {@link Snackbar} using {@code text}.
-     *
-     * @param text The Snackbar text.
-     */
-    private void showSnackbar(final String text) {
-        View container = findViewById(R.id.main_activity_container);
-        if (container != null) {
-            Snackbar.make(container, text, Snackbar.LENGTH_LONG).show();
-        }
-    }
-
-    /**
-     * Shows a {@link Snackbar}.
-     *
-     * @param mainTextStringId The id for the string resource for the Snackbar text.
-     * @param actionStringId   The text of the action item.
-     * @param listener         The listener associated with the Snackbar action.
-     */
-    private void showSnackbar(final int mainTextStringId, final int actionStringId,
-            View.OnClickListener listener) {
-        Snackbar.make(findViewById(android.R.id.content),
-                getString(mainTextStringId),
-                Snackbar.LENGTH_INDEFINITE)
-                .setAction(getString(actionStringId), listener).show();
-    }
-
 
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
@@ -444,6 +395,74 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    /**
+     * Shows a {@link Snackbar} using {@code text}.
+     *
+     * @param text The Snackbar text.
+     */
+    private void showSnackbar(final String text) {
+        View container = findViewById(R.id.main_activity_container);
+        if (container != null) {
+            Snackbar.make(container, text, Snackbar.LENGTH_LONG).show();
+        }
+    }
+
+    /**
+     * Shows a {@link Snackbar}.
+     *
+     * @param mainTextStringId The id for the string resource for the Snackbar text.
+     * @param actionStringId   The text of the action item.
+     * @param listener         The listener associated with the Snackbar action.
+     */
+    private void showSnackbar(final int mainTextStringId, final int actionStringId,
+            View.OnClickListener listener) {
+        Snackbar.make(findViewById(android.R.id.content),
+                getString(mainTextStringId),
+                Snackbar.LENGTH_INDEFINITE)
+                .setAction(getString(actionStringId), listener).show();
+    }
+
+    private void toggle() {
+        if (mVisible) {
+            hide();
+        } else {
+            show();
+        }
+    }
+
+    private void hide() {
+        // Hide UI first
+        ActionBar actionBar = getSupportActionBar();
+        if (actionBar != null) {
+            actionBar.hide();
+        }
+        mVisible = false;
+
+        // Schedule a runnable to remove the status and navigation bar after a delay
+        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
+    }
+
+    @SuppressLint("InlinedApi")
+    private void show() {
+        // Show the system bar
+        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
+        mVisible = true;
+
+        // Schedule a runnable to display UI elements after a delay
+        mHideHandler.removeCallbacks(mHidePart2Runnable);
+    }
+
+    /**
+     * Schedules a call to hide() in delay milliseconds, canceling any
+     * previously scheduled calls.
+     */
+    private void delayedHide(int delayMillis) {
+        mHideHandler.removeCallbacks(mHideRunnable);
+        mHideHandler.postDelayed(mHideRunnable, delayMillis);
+    }
+
+
     private class GetWeather extends AsyncTask<String, Integer, String> {
         ProgressDialog pd = new ProgressDialog(MainActivity.this);
 
@@ -470,8 +489,8 @@ public class MainActivity extends AppCompatActivity {
                 return;
             }
             openWeatherMap = parseWeatherJson(json);
-            saveWeatherInfo();
             updateViews();
+            saveWeatherInfo();
         }
 
         @Override
@@ -501,6 +520,10 @@ public class MainActivity extends AppCompatActivity {
                 txtLastUpdate.setText(
                         String.format(getString(R.string.update_description), Common.getDateNow()));
 
+                txtCelsius.setText(
+                        String.format(getString(R.string.temperature_description),
+                                openWeatherMap.getMain().getTemp()));
+
                 /*
                 Each field in database has certain formula depending on weather. The formula
                 looks as follows: typeOfWeather_dayOrNight_typeOfTemperature(cold/moderate/hot).
@@ -525,9 +548,6 @@ public class MainActivity extends AppCompatActivity {
                     public void onCancelled(DatabaseError databaseError) {
                     }
                 });
-                txtCelsius.setText(
-                        String.format(getString(R.string.temperature_description),
-                                openWeatherMap.getMain().getTemp()));
             } else {
                 loadSavedWeather();
             }

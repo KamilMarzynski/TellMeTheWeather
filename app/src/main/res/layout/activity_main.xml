@@ -67,7 +67,7 @@
             android:layout_alignParentRight="true"
             android:layout_toRightOf="@id/btnRefresh"
             android:gravity="right"
-            android:text="-2,00°C"
+            android:text="0,00°C"
             android:textColor="@color/text_transparent_black"
             android:textSize="42sp"
             android:textStyle="bold"
@@ -88,9 +88,9 @@
             android:layout_height="wrap_content"
             android:gravity="center"
             android:paddingHorizontal="5dp"
-            android:text="Give me a second. Rome wasn't build in a day. Your weather description is incoming."
+            android:text="Rome wasn't build in a day. Your weather description is incoming."
             android:textColor="@color/text_transparent_black"
-            android:textSize="46sp"
+            android:textSize="62sp"
             android:textStyle="bold"
             tools:targetApi="o" />
 

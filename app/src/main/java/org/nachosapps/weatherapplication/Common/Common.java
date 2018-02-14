@@ -16,8 +16,8 @@ public class Common {
     private static String API_KEY = "c3e953f80e601216ce93da748ad8b969";
     private static String API_LINK = "http://api.openweathermap.org/data/2.5/weather";
 
-    private static final double COLD = 0;
-    private static final double HOT = 15;
+    private static final double COLD = 3;
+    private static final double HOT = 18;
 
     @NonNull
     public static String apiRequest(String lat, String lng) {

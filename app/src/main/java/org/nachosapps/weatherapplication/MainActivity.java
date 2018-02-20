@@ -1,7 +1,6 @@
 package org.nachosapps.weatherapplication;
 
 import android.Manifest;
-import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
@@ -11,14 +10,12 @@ import android.location.Location;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.Handler;
 import android.os.Looper;
 import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
-import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -50,21 +47,17 @@ import java.lang.reflect.Type;
 public class MainActivity extends AppCompatActivity {
 
     private static final String TAG = MainActivity.class.getSimpleName();
-    /**
-     * Some older devices needs a small delay between UI widget updates
-     * and a change of the status and navigation bar.
-     */
-    private static final int UI_ANIMATION_DELAY = 300;
     final int REQUEST_CODE_PERMISSIONS = 0;
 
 
-    private final Handler mHideHandler = new Handler();
     protected Location mLastLocation;
     TextView txtCity, txtLastUpdate, txtDescription, txtCelsius;
     Button btnRefresh;
     OpenWeatherMap openWeatherMap = new OpenWeatherMap();
     LocationRequest mLocationRequest;
     boolean mRequestingLocationUpdates;
+    private Snackbar mSnackbar;
+    boolean isSnackbarShown = false;
     FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
     String[] myPermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION,
@@ -85,33 +78,6 @@ public class MainActivity extends AppCompatActivity {
     };
 
     private FusedLocationProviderClient mFusedLocationClient;
-    private View mContentView;
-
-    private final Runnable mHidePart2Runnable = new Runnable() {
-        @SuppressLint("InlinedApi")
-        @Override
-        public void run() {
-            // Delayed removal of status and navigation bar
-
-            // Note that some of these constants are new as of API 16 (Jelly Bean)
-            // and API 19 (KitKat). It is safe to use them, as they are inlined
-            // at compile-time and do nothing on earlier devices.
-            mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LOW_PROFILE
-                    | View.SYSTEM_UI_FLAG_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE
-                    | View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION);
-        }
-    };
-    private boolean mVisible;
-    private final Runnable mHideRunnable = new Runnable() {
-        @Override
-        public void run() {
-            hide();
-        }
-    };
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -135,7 +101,10 @@ public class MainActivity extends AppCompatActivity {
         btnRefresh.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (checkPermissions()) {
+                dismissSnack();
+                if (!checkPermissions()) {
+                    requestPermissions();
+                } else {
                     if (mLastLocation != null) {
                         //Refresh weather only when there was any known location. Without this
                         // conditional statement application is crashing in rare occasions when
@@ -143,9 +112,6 @@ public class MainActivity extends AppCompatActivity {
                         // function.
                         createLocationRequest();
                         getLastLocation();
-                        Toast.makeText(getApplicationContext(),
-                                getString(R.string.refreshed_weather), Toast
-                                        .LENGTH_SHORT).show();
                     } else {
                         Toast.makeText(getApplicationContext(), getString(R.string
                                 .dont_know_location), Toast.LENGTH_SHORT).show();
@@ -153,21 +119,6 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         });
-
-        mVisible = true;
-        mContentView = findViewById(R.id.main_activity_container);
-
-
-        // Set up the user interaction to manually show or hide the system UI.
-        mContentView.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                toggle();
-            }
-        });
-        // Upon interacting with UI controls, delay any scheduled hide()
-        // operations to prevent the jarring behavior of controls going away
-        // while interacting with the UI.
     }
 
     @Override
@@ -181,19 +132,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    @Override
-    protected void onPostCreate(Bundle savedInstanceState) {
-        super.onPostCreate(savedInstanceState);
-
-        // Trigger the initial hide() shortly after the activity has been
-        // created, to briefly hint to the user that UI controls
-        // are available.
-        delayedHide(100);
-    }
 
     @Override
     protected void onPause() {
         super.onPause();
+        dismissSnack();
         stopLocationUpdates();
     }
 
@@ -265,7 +208,7 @@ public class MainActivity extends AppCompatActivity {
         this.txtCity.setText(sharedPreferences.getString(getString(R.string.TAG_city), null));
         this.txtCelsius.setText(sharedPreferences.getString(getString(R.string.TAG_celsius), null));
         this.txtLastUpdate.setText(
-                sharedPreferences.getString(getString(R.string.TAG_lastUpdate), null));
+                sharedPreferences.getString(getString(R.string.TAG_lastUpdate), getString(R.string.no_data)));
 
         DatabaseReference mRef = mDatabase.getReference(sharedPreferences.getString(getString(R
                 .string.TAG_description), "could_not_load_weather"));
@@ -281,6 +224,8 @@ public class MainActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
+
+        Log.i("SharedPreferences", "Weather was loaded from shared preferences");
     }
 
 
@@ -324,6 +269,7 @@ public class MainActivity extends AppCompatActivity {
         boolean shouldProvideRationale =
                 ActivityCompat.shouldShowRequestPermissionRationale(this,
                         Manifest.permission.ACCESS_COARSE_LOCATION);
+        loadSavedWeather();
 
         // Provide an additional rationale to the user. This would happen if the user denied the
         // request previously, but didn't check the "Don't ask again" checkbox.
@@ -395,6 +341,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
+    private void dismissSnack() {
+        isSnackbarShown = false;
+        if (mSnackbar != null) {
+            if (mSnackbar.isShown()) {
+                mSnackbar.dismiss();
+            }
+        }
+    }
+
     /**
      * Shows a {@link Snackbar} using {@code text}.
      *
@@ -402,8 +357,10 @@ public class MainActivity extends AppCompatActivity {
      */
     private void showSnackbar(final String text) {
         View container = findViewById(R.id.main_activity_container);
-        if (container != null) {
-            Snackbar.make(container, text, Snackbar.LENGTH_LONG).show();
+        dismissSnack();
+        if (container != null && isSnackbarShown == false) {
+            mSnackbar.make(container, text, Snackbar.LENGTH_LONG).show();
+            isSnackbarShown = true;
         }
     }
 
@@ -416,50 +373,14 @@ public class MainActivity extends AppCompatActivity {
      */
     private void showSnackbar(final int mainTextStringId, final int actionStringId,
             View.OnClickListener listener) {
-        Snackbar.make(findViewById(android.R.id.content),
-                getString(mainTextStringId),
-                Snackbar.LENGTH_INDEFINITE)
-                .setAction(getString(actionStringId), listener).show();
-    }
-
-    private void toggle() {
-        if (mVisible) {
-            hide();
-        } else {
-            show();
+        View container = findViewById(R.id.main_activity_container);
+        if (isSnackbarShown == false) {
+            mSnackbar.make(container,
+                    getString(mainTextStringId),
+                    Snackbar.LENGTH_LONG).setAction(getString
+                    (actionStringId), listener).setDuration(18000).show();
+            isSnackbarShown = true;
         }
-    }
-
-    private void hide() {
-        // Hide UI first
-        ActionBar actionBar = getSupportActionBar();
-        if (actionBar != null) {
-            actionBar.hide();
-        }
-        mVisible = false;
-
-        // Schedule a runnable to remove the status and navigation bar after a delay
-        mHideHandler.postDelayed(mHidePart2Runnable, UI_ANIMATION_DELAY);
-    }
-
-    @SuppressLint("InlinedApi")
-    private void show() {
-        // Show the system bar
-        mContentView.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION);
-        mVisible = true;
-
-        // Schedule a runnable to display UI elements after a delay
-        mHideHandler.removeCallbacks(mHidePart2Runnable);
-    }
-
-    /**
-     * Schedules a call to hide() in delay milliseconds, canceling any
-     * previously scheduled calls.
-     */
-    private void delayedHide(int delayMillis) {
-        mHideHandler.removeCallbacks(mHideRunnable);
-        mHideHandler.postDelayed(mHideRunnable, delayMillis);
     }
 
 
@@ -484,10 +405,6 @@ public class MainActivity extends AppCompatActivity {
         protected void onPostExecute(String json) {
             super.onPostExecute(json);
             pd.dismiss();
-            if (json.contains("Error: Not found city")) {
-                errorLocationNotFound();
-                return;
-            }
             openWeatherMap = parseWeatherJson(json);
             updateViews();
             saveWeatherInfo();
@@ -504,10 +421,6 @@ public class MainActivity extends AppCompatActivity {
             Type mType = new TypeToken<OpenWeatherMap>() {
             }.getType();
             return gson.fromJson(json, mType);
-        }
-
-        void errorLocationNotFound() {
-            showSnackbar(getString(R.string.no_location_detected));
         }
 
         void updateViews() {

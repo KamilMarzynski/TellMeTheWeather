@@ -39,6 +39,7 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.nachosapps.weatherapplication.Common.Common;
+import org.nachosapps.weatherapplication.Common.WeatherConstants;
 import org.nachosapps.weatherapplication.HttpClient.HttpClient;
 import org.nachosapps.weatherapplication.Model.OpenWeatherMap;
 
@@ -58,7 +59,8 @@ public class MainActivity extends AppCompatActivity {
     boolean mRequestingLocationUpdates;
     private Snackbar mSnackbar;
     boolean isSnackbarShown = false;
-    FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
+    private static final long HOUR_IN_MILIS = 6000 * 60;
+    public FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
     String[] myPermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
@@ -86,10 +88,9 @@ public class MainActivity extends AppCompatActivity {
 
         initViews();
 
-        // loadSavedWeather(); should be called here?
+        loadSavedWeather();
 
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
 
         if (!checkPermissions()) {
             requestPermissions();
@@ -189,8 +190,8 @@ public class MainActivity extends AppCompatActivity {
 
     void createLocationRequest() {
         mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(60000 * 60); // one hour interval
-        mLocationRequest.setFastestInterval(60000 * 60);
+        mLocationRequest.setInterval(HOUR_IN_MILIS); // one hour interval
+        mLocationRequest.setFastestInterval(HOUR_IN_MILIS);
         mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
@@ -202,16 +203,17 @@ public class MainActivity extends AppCompatActivity {
 
     private void loadSavedWeather() {
         SharedPreferences sharedPreferences = this.getSharedPreferences(
-                getString(R.string.weather_information),
+                WeatherConstants.WEATHER_INFORMATION,
                 Context.MODE_PRIVATE);
 
-        this.txtCity.setText(sharedPreferences.getString(getString(R.string.TAG_city), null));
-        this.txtCelsius.setText(sharedPreferences.getString(getString(R.string.TAG_celsius), null));
+        this.txtCity.setText(sharedPreferences.getString(WeatherConstants.CITY, null));
+        this.txtCelsius.setText(sharedPreferences.getString(WeatherConstants.CELSIUS, null));
         this.txtLastUpdate.setText(
-                sharedPreferences.getString(getString(R.string.TAG_lastUpdate), getString(R.string.no_data)));
+                sharedPreferences.getString(WeatherConstants.LAST_UPDATE,
+                        getString(R.string.no_data)));
 
-        DatabaseReference mRef = mDatabase.getReference(sharedPreferences.getString(getString(R
-                .string.TAG_description), "could_not_load_weather"));
+        DatabaseReference mRef = mDatabase.getReference(sharedPreferences.getString
+                (WeatherConstants.DESCRIPTION, "could_not_load_weather"));
 
         mRef.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
@@ -225,7 +227,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Log.i("SharedPreferences", "Weather was loaded from shared preferences");
+        Log.i(TAG, "Weather was loaded from shared preferences");
     }
 
 
@@ -308,35 +310,27 @@ public class MainActivity extends AppCompatActivity {
                 // If user interaction was interrupted, the permission request is cancelled and you
                 // receive empty arrays.
                 Log.i(TAG, "User interaction was cancelled.");
-            } else // Permission denied.
-// Notify the user via a SnackBar that they have rejected a core permission for the
-// app, which makes the Activity useless.
-// Additionally, it is important to remember that a permission might have been
-// rejected without asking the user for permission (device policy or "Never ask
-// again" prompts). Therefore, a user interface affordance is typically implemented
-// when permissions are denied. Otherwise, your app could appear unresponsive to
-// touches or interactions which have required permissions.
-                if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                    // Permission granted.
-                    createLocationRequest();
-                    getLastLocation();
-                } else {
-                    showSnackbar(R.string.permission_denied_explanation, R.string.settings,
-                            new View.OnClickListener() {
-                                @Override
-                                public void onClick(View view) {
-                                    // Build intent that displays the App settings screen.
-                                    Intent intent = new Intent();
-                                    intent.setAction(
-                                            Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-                                    Uri uri = Uri.fromParts("package",
-                                            BuildConfig.APPLICATION_ID, null);
-                                    intent.setData(uri);
-                                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                                    startActivity(intent);
-                                }
-                            });
-                }
+            } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                // Permission granted.
+                createLocationRequest();
+                getLastLocation();
+            } else {
+                showSnackbar(R.string.permission_denied_explanation, R.string.settings,
+                        new View.OnClickListener() {
+                            @Override
+                            public void onClick(View view) {
+                                // Build intent that displays the App settings screen.
+                                Intent intent = new Intent();
+                                intent.setAction(
+                                        Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+                                Uri uri = Uri.fromParts("package",
+                                        BuildConfig.APPLICATION_ID, null);
+                                intent.setData(uri);
+                                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                                startActivity(intent);
+                            }
+                        });
+            }
         }
     }
 
@@ -384,20 +378,20 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    private class GetWeather extends AsyncTask<String, Integer, String> {
+    public class GetWeather extends AsyncTask<String, Integer, String> {
         ProgressDialog pd = new ProgressDialog(MainActivity.this);
 
         @Override
         protected void onProgressUpdate(Integer... values) {
             super.onProgressUpdate(values);
-            pd.setTitle("Please wait...");
+            pd.setTitle(getString(R.string.please_wait));
             pd.show();
         }
 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
-            pd.setTitle("Please wait...");
+            pd.setTitle(getString(R.string.please_wait));
             pd.show();
         }
 
@@ -407,7 +401,7 @@ public class MainActivity extends AppCompatActivity {
             pd.dismiss();
             openWeatherMap = parseWeatherJson(json);
             updateViews();
-            saveWeatherInfo();
+            Common.saveWeatherInfo(openWeatherMap, getApplicationContext());
         }
 
         @Override
@@ -464,26 +458,7 @@ public class MainActivity extends AppCompatActivity {
             } else {
                 loadSavedWeather();
             }
-        }
 
-        private void saveWeatherInfo() {
-            SharedPreferences sharedPreferences = getApplicationContext().getSharedPreferences(
-                    getString(R.string.weather_information), Context.MODE_PRIVATE);
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putString(getString(R.string.TAG_city),
-                    String.format(getString(R.string.city_description), openWeatherMap.getName(),
-                            openWeatherMap.getSys().getCountry()));
-            editor.putString(getString(R.string.TAG_lastUpdate),
-                    String.format(getString(R.string.update_description), Common.getDateNow()));
-            editor.putString(getString(R.string.TAG_celsius),
-                    String.format(getString(R.string.temperature_description),
-                            openWeatherMap.getMain().getTemp()));
-            editor.putString(getString(R.string.TAG_description),
-                    openWeatherMap.getWeather().get(0)
-                            .getMain() + "_" + Common.timeOfTheDay(openWeatherMap.getSys()
-                                    .getSunrise(),
-                            openWeatherMap.getSys().getSunset()) + "_" + Common.typeOfTemperature(
-                            openWeatherMap.getMain().getTemp()));
         }
     }
 }

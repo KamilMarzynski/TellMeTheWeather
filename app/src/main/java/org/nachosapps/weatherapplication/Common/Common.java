@@ -1,6 +1,20 @@
 package org.nachosapps.weatherapplication.Common;
 
+import static android.content.ContentValues.TAG;
+
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
+import android.util.Log;
+
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import org.nachosapps.weatherapplication.Model.OpenWeatherMap;
+import org.nachosapps.weatherapplication.R;
 
 import java.sql.Timestamp;
 import java.text.DateFormat;
@@ -18,6 +32,13 @@ public class Common {
 
     private static final double COLD = 3;
     private static final double HOT = 18;
+    private static final String NIGHT = "night";
+    private static final String DAY = "day";
+    private static final String sCOLD = "cold";
+    private static final String sMODERATE = "moderate";
+    private static final String sHOT = "hot";
+    private static FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
+
 
     @NonNull
     public static String apiRequest(String lat, String lng) {
@@ -26,7 +47,7 @@ public class Common {
 
     public static String unixTimeStampToDateTime(double unixTimeStamp) {
         DateFormat dateFormat = new SimpleDateFormat("HH:mm");
-        Date date = new Date((long) unixTimeStamp * 1000);
+        Date date = new Date(convertTime(unixTimeStamp));
         return dateFormat.format(date);
     }
 
@@ -37,25 +58,29 @@ public class Common {
     }
 
     public static String timeOfTheDay(double sunrise, double sunset) {
-        Date mSunrise = new Date ((long) (sunrise*1000));
-        Date mSunset = new Date ((long) (sunset*1000));
+        Date mSunrise = new Date(convertTime(sunrise));
+        Date mSunset = new Date(convertTime(sunset));
         Timestamp timestamp = new Timestamp(System.currentTimeMillis());
         double currentTimeStamp = timestamp.getTime();
         Date mNow = new java.util.Date((long) (currentTimeStamp));
         if (mNow.after(mSunrise) && mNow.before(mSunset)) {
-            return "day";
+            return DAY;
         } else {
-            return "night";
+            return NIGHT;
         }
+    }
+
+    private static long convertTime(double timeInMilis) {
+        return (long) timeInMilis * 1000;
     }
 
     public static String typeOfTemperature(double temp) {
         if (temp < COLD) {
-            return "cold";
+            return sCOLD;
         } else if (temp >= COLD && temp <= HOT) {
-            return "moderate";
+            return sMODERATE;
         } else {
-            return "hot";
+            return sHOT;
         }
     }
 
@@ -76,4 +101,28 @@ public class Common {
         int randNumber = generator.nextInt(separatedDescription.length);
         return descriptions[randNumber];
     }
+
+    public static void saveWeatherInfo(OpenWeatherMap openWeatherMap,
+            Context context) {
+        SharedPreferences sharedPreferences = context.getSharedPreferences(
+                WeatherConstants.WEATHER_INFORMATION, Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putString(WeatherConstants.CITY,
+                String.format(context.getString(R.string.city_description),
+                        openWeatherMap.getName(), openWeatherMap.getSys().getCountry())).apply();
+        editor.putString(WeatherConstants.LAST_UPDATE,
+                String.format(context.getString(R.string.update_description),
+                        Common.getDateNow())).apply();
+        editor.putString(WeatherConstants.CELSIUS,
+                String.format(context.getString(R.string.temperature_description),
+                        openWeatherMap.getMain().getTemp())).apply();
+        editor.putString(WeatherConstants.DESCRIPTION,
+                openWeatherMap.getWeather().get(0)
+                        .getMain() + "_" + Common.timeOfTheDay(openWeatherMap.getSys()
+                                .getSunrise(),
+                        openWeatherMap.getSys().getSunset()) + "_" + Common.typeOfTemperature(
+                        openWeatherMap.getMain().getTemp())).apply();
+        Log.i(TAG,"Weather was saved to shared preferences");
+    }
+
 }

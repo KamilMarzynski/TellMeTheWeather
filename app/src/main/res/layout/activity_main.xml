@@ -91,7 +91,7 @@
             android:paddingHorizontal="5dp"
             android:text="Rome wasn't build in a day. Your weather description is incoming."
             android:textColor="@color/text_transparent_black"
-            android:textSize="62sp"
+            android:textSize="42sp"
             android:textStyle="bold"
             tools:targetApi="o" />
 

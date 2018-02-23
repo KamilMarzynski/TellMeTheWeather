@@ -15,7 +15,6 @@ import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.ActivityCompat;
-import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
@@ -70,7 +69,6 @@ public class MainActivity extends AppCompatActivity {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             for (Location location : locationResult.getLocations()) {
-                Log.i(TAG, "Location: " + location.getLatitude() + " " + location.getLongitude());
                 mLastLocation = location;
             }
             new GetWeather().execute(Common.apiRequest(
@@ -95,8 +93,8 @@ public class MainActivity extends AppCompatActivity {
         if (!checkPermissions()) {
             requestPermissions();
         } else {
-            createLocationRequest();
-            getLastLocation();
+            Common.createLocationRequest(mLocationCallback, this, mFusedLocationClient);
+            getLastLocationAndShowWeather();
         }
 
         btnRefresh.setOnClickListener(new View.OnClickListener() {
@@ -111,8 +109,9 @@ public class MainActivity extends AppCompatActivity {
                         // conditional statement application is crashing in rare occasions when
                         // user tries to refresh weather moments after enabling localization
                         // function.
-                        createLocationRequest();
-                        getLastLocation();
+                        Common.createLocationRequest(mLocationCallback, getApplicationContext(),
+                                mFusedLocationClient);
+                        getLastLocationAndShowWeather();
                     } else {
                         Toast.makeText(getApplicationContext(), getString(R.string
                                 .dont_know_location), Toast.LENGTH_SHORT).show();
@@ -128,8 +127,8 @@ public class MainActivity extends AppCompatActivity {
         if (!checkPermissions()) {
             requestPermissions();
         } else {
-            createLocationRequest();
-            getLastLocation();
+            Common.createLocationRequest(mLocationCallback, this, mFusedLocationClient);
+            getLastLocationAndShowWeather();
         }
     }
 
@@ -158,8 +157,8 @@ public class MainActivity extends AppCompatActivity {
         if (!checkPermissions()) {
             requestPermissions();
         } else {
-            createLocationRequest();
-            getLastLocation();
+            Common.createLocationRequest(mLocationCallback, this, mFusedLocationClient);
+            getLastLocationAndShowWeather();
         }
     }
 
@@ -188,19 +187,6 @@ public class MainActivity extends AppCompatActivity {
         btnRefresh = findViewById(R.id.btnRefresh);
     }
 
-    void createLocationRequest() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setInterval(HOUR_IN_MILIS); // one hour interval
-        mLocationRequest.setFastestInterval(HOUR_IN_MILIS);
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.ACCESS_FINE_LOCATION)
-                == PackageManager.PERMISSION_GRANTED) {
-            mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback,
-                    Looper.myLooper());
-        }
-    }
-
     private void loadSavedWeather() {
         SharedPreferences sharedPreferences = this.getSharedPreferences(
                 WeatherConstants.WEATHER_INFORMATION,
@@ -226,13 +212,11 @@ public class MainActivity extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
             }
         });
-
-        Log.i(TAG, "Weather was loaded from shared preferences");
     }
 
 
     @SuppressWarnings("MissingPermission")
-    private void getLastLocation() {
+    private void getLastLocationAndShowWeather() {
         mFusedLocationClient.getLastLocation()
                 .addOnCompleteListener(this, new OnCompleteListener<Location>() {
                     @Override
@@ -242,7 +226,6 @@ public class MainActivity extends AppCompatActivity {
                             new GetWeather().execute(String.valueOf(mLastLocation.getLatitude()),
                                     String.valueOf(mLastLocation.getLongitude()));
                         } else {
-                            Log.w(TAG, "getLastLocation:exception", task.getException());
                             loadSavedWeather();
                             showSnackbar(R.string.no_location_detected, R.string.settings,
                                     new View.OnClickListener() {
@@ -276,7 +259,6 @@ public class MainActivity extends AppCompatActivity {
         // Provide an additional rationale to the user. This would happen if the user denied the
         // request previously, but didn't check the "Don't ask again" checkbox.
         if (shouldProvideRationale) {
-            Log.i(TAG, "Displaying permission rationale to provide additional context.");
             showSnackbar(R.string.permission_rationale, android.R.string.ok,
                     new View.OnClickListener() {
                         @Override
@@ -287,7 +269,6 @@ public class MainActivity extends AppCompatActivity {
                     });
 
         } else {
-            Log.i(TAG, "Requesting permission");
             // Request permission. It's possible this can be auto answered if device policy
             // sets the permission in a given state or the user denied the permission
             // previously and checked "Never ask again".
@@ -304,16 +285,14 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
             @NonNull int[] grantResults) {
-        Log.i(TAG, "onRequestPermissionResult");
         if (requestCode == REQUEST_CODE_PERMISSIONS) {
             if (grantResults.length <= 0) {
                 // If user interaction was interrupted, the permission request is cancelled and you
                 // receive empty arrays.
-                Log.i(TAG, "User interaction was cancelled.");
             } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted.
-                createLocationRequest();
-                getLastLocation();
+                Common.createLocationRequest(mLocationCallback, this, mFusedLocationClient);
+                getLastLocationAndShowWeather();
             } else {
                 showSnackbar(R.string.permission_denied_explanation, R.string.settings,
                         new View.OnClickListener() {

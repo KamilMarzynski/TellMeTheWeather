@@ -1,17 +1,16 @@
 package org.nachosapps.weatherapplication.Common;
 
-import static android.content.ContentValues.TAG;
-
+import android.Manifest;
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Looper;
 import android.support.annotation.NonNull;
-import android.util.Log;
+import android.support.v4.content.ContextCompat;
 
-import com.google.firebase.database.DataSnapshot;
-import com.google.firebase.database.DatabaseError;
-import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.ValueEventListener;
+import com.google.android.gms.location.FusedLocationProviderClient;
+import com.google.android.gms.location.LocationCallback;
+import com.google.android.gms.location.LocationRequest;
 
 import org.nachosapps.weatherapplication.Model.OpenWeatherMap;
 import org.nachosapps.weatherapplication.R;
@@ -37,7 +36,8 @@ public class Common {
     private static final String sCOLD = "cold";
     private static final String sMODERATE = "moderate";
     private static final String sHOT = "hot";
-    private static FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
+    private static LocationRequest mLocationRequest;
+    private static final long HOUR_IN_MILLIS = 6000 * 60;
 
 
     @NonNull
@@ -122,7 +122,19 @@ public class Common {
                                 .getSunrise(),
                         openWeatherMap.getSys().getSunset()) + "_" + Common.typeOfTemperature(
                         openWeatherMap.getMain().getTemp())).apply();
-        Log.i(TAG,"Weather was saved to shared preferences");
     }
 
+    public static void createLocationRequest(LocationCallback mLocationCallback, Context context,
+            FusedLocationProviderClient mFusedLocationClient) {
+        mLocationRequest = new LocationRequest();
+        mLocationRequest.setInterval(HOUR_IN_MILLIS); // one hour interval
+        mLocationRequest.setFastestInterval(HOUR_IN_MILLIS);
+        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+        if (ContextCompat.checkSelfPermission(context,
+                Manifest.permission.ACCESS_FINE_LOCATION)
+                == PackageManager.PERMISSION_GRANTED) {
+            mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback,
+                    Looper.myLooper());
+        }
+    }
 }

@@ -1,0 +1,172 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/detailWeather"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_below="@id/viewpager"
+    android:layout_alignParentBottom="true"
+    android:background="@color/colorSecondaryLight"
+    android:paddingHorizontal="@dimen/activity_horizontal_margin"
+    android:elevation="12dp"
+    tools:targetApi="o">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/additional_information"
+        android:textStyle="bold"
+        android:textColor="@color/textColor"
+        android:textSize="30sp"
+        android:gravity="center"
+        android:id="@+id/txtDetailedTitle"/>
+
+    <RelativeLayout
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:layout_below="@id/txtDetailedTitle"
+        android:id="@+id/addInfoLayout"
+        tools:targetApi="o">
+
+
+        <ImageView
+            android:layout_marginHorizontal="20dp"
+            android:id="@+id/imageHumidity"
+            android:layout_toEndOf="@id/imageWind"
+            android:layout_width="@dimen/detailedLayoutImageDimen"
+            android:layout_height="@dimen/detailedLayoutImageDimen"
+            android:tint="@color/secondaryText"
+            android:src="@drawable/icon_humidity" />
+
+        <TextView
+            android:id="@+id/txtHumidity"
+            android:layout_width="@dimen/detailedLayoutImageDimen"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@color/secondaryText"
+            android:layout_alignEnd="@+id/imageHumidity"
+            android:layout_below="@+id/imageHumidity"
+            tools:text="65%" />
+
+        <ImageView
+            android:id="@+id/imageWind"
+            android:layout_toEndOf="@id/imagePressure"
+            android:layout_marginHorizontal="20dp"
+            android:layout_width="@dimen/detailedLayoutImageDimen"
+            android:layout_height="@dimen/detailedLayoutImageDimen"
+            android:tint="@color/secondaryText"
+            android:src="@drawable/icon_wind" />
+
+        <TextView
+            android:id="@+id/txtWind"
+            android:layout_width="@dimen/detailedLayoutImageDimen"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:textColor="@color/secondaryText"
+            android:layout_alignStart="@id/imageWind"
+            android:layout_below="@+id/imageWind"
+            tools:text="11.5 m/s" />
+
+
+        <ImageView
+            android:id="@+id/imagePressure"
+            android:layout_toEndOf="@id/imageSunset"
+            android:layout_marginHorizontal="20dp"
+            android:layout_width="@dimen/detailedLayoutImageDimen"
+            android:layout_height="@dimen/detailedLayoutImageDimen"
+            android:tint="@color/secondaryText"
+            android:src="@drawable/icon_pressure" />
+
+        <TextView
+            android:id="@+id/txtPressure"
+            android:layout_width="@dimen/detailedLayoutImageDimen"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_alignBaseline="@+id/txtWind"
+            android:textColor="@color/secondaryText"
+            android:layout_alignStart="@id/imagePressure"
+            tools:text="1008HPa" />
+
+        <ImageView
+            android:layout_marginHorizontal="20dp"
+            android:id="@+id/imageSunset"
+            android:layout_toEndOf="@+id/imageSunrise"
+            android:layout_width="@dimen/detailedLayoutImageDimen"
+            android:layout_height="@dimen/detailedLayoutImageDimen"
+            android:tint="@color/secondaryText"
+            android:src="@drawable/icon_sunset" />
+
+        <TextView
+            android:id="@+id/txtSunset"
+            android:layout_width="@dimen/detailedLayoutImageDimen"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:layout_alignBaseline="@+id/txtSunrise"
+            android:layout_alignBottom="@+id/txtSunrise"
+            android:layout_alignStart="@+id/imageSunset"
+            android:textColor="@color/secondaryText"
+            tools:text="17:20" />
+
+        <ImageView
+            android:layout_marginHorizontal="20dp"
+            android:id="@+id/imageSunrise"
+            android:layout_width="@dimen/detailedLayoutImageDimen"
+            android:layout_height="@dimen/detailedLayoutImageDimen"
+            android:tint="@color/secondaryText"
+            android:src="@drawable/icon_sunrise" />
+
+        <TextView
+
+            android:id="@+id/txtSunrise"
+            android:layout_below="@id/imageSunrise"
+            android:layout_width="@dimen/detailedLayoutImageDimen"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            tools:text="6:32"
+            android:textColor="@color/secondaryText"
+            android:layout_alignEnd="@+id/imageSunrise"/>
+
+    </RelativeLayout>
+
+
+
+<!--    <RelativeLayout
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerHorizontal="true"
+        android:id="@+id/layoutDetailedTemp">
+
+        <ImageView
+            android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+            android:layout_marginVertical="@dimen/activity_horizontal_margin"
+            android:id="@+id/imageTempBottom"
+            android:layout_width="50dp"
+            android:layout_height="70dp"
+            android:layout_toLeftOf="@id/txtTempMin"
+            android:src="@drawable/icon_thermo" />
+
+        <TextView
+            android:id="@+id/txtTempMin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_below="@+id/txtTempMax"
+            android:textSize="25sp"
+            tools:text="Min: -12°C" />
+
+        <TextView
+            android:layout_marginTop="@dimen/activity_horizontal_margin"
+            android:id="@+id/txtTempMax"
+            android:layout_centerHorizontal="true"
+            android:layout_alignLeft="@id/txtTempMin"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="25sp"
+            tools:text="Max: -8°C" />
+    </RelativeLayout>-->
+
+
+</RelativeLayout>

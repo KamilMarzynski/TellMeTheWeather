@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    package="org.nachosapps.weatherapplication"
+    android:versionCode="24"
+    android:versionName="Beta"
+    tools:ignore="MissingLeanbackLauncher">
+
+    <uses-feature
+        android:name="android.hardware.touchscreen"
+        android:required="false" />
+    <uses-feature
+        android:name="android.software.leanback"
+        android:required="false" />
+
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+
+    <application
+        android:allowBackup="true"
+        android:debuggable="false"
+        android:icon="@mipmap/ic_launcher3"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher3"
+        android:supportsRtl="true"
+        android:theme="@style/DayTheme"
+        tools:ignore="HardcodedDebugMode">
+        <activity android:name=".Activities.MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="1b86e757fff5f235b6eb718ce6a67d397255790c" />
+        <meta-data
+            android:name="io.fabric.ApiKey"
+            android:value="1b86e757fff5f235b6eb718ce6a67d397255790c" />
+    </application>
+
+</manifest>

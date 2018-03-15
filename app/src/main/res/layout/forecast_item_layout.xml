@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="80dp"
+    android:layout_height="wrap_content">
+
+    <ImageView
+        android:id="@+id/weatherImage"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:layout_alignParentTop="true"
+        android:tint="@color/secondaryText"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:id="@+id/forecastTemperature"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/weatherImage"
+        android:gravity="center"
+        android:textColor="@color/secondaryText"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        tools:text="0°C" />
+
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/forecastHour"
+        android:layout_below="@id/forecastTemperature"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:textColor="@color/secondaryText"
+        tools:text = "18:00"/>
+
+    <TextView
+        android:id="@+id/forecastDate"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentStart="true"
+        android:layout_below="@+id/forecastHour"
+        android:gravity="center"
+        android:textSize="12sp"
+        android:textColor="@color/secondaryText"
+        tools:text="20-10-2018" />
+
+</RelativeLayout>

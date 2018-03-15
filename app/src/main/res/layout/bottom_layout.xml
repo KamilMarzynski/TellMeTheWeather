@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/detailWeather"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_alignParentBottom="true"
+    android:layout_below="@id/viewpager"
+    android:background="@color/colorSecondaryLight"
+    android:elevation="12dp"
+    android:paddingHorizontal="@dimen/activity_horizontal_margin"
+    tools:targetApi="o">
+
+    <TextView
+        android:id="@+id/txtDetailedTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="@string/additional_information"
+        android:textColor="@color/textColor"
+        android:textSize="30sp"
+        android:textStyle="bold" />
+
+
+    <ImageView
+        android:id="@+id/imageHumidity"
+        android:layout_width="@dimen/detailedLayoutImageDimen"
+        android:layout_height="@dimen/detailedLayoutImageDimen"
+        android:layout_below="@+id/imageWind"
+        android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:tint="@color/secondaryText"
+        android:src="@drawable/icon_humidity" />
+
+    <TextView
+        android:id="@+id/txtHumidity"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@+id/imageHumidity"
+        android:layout_toEndOf="@id/imageHumidity"
+        android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+        android:textColor="@color/secondaryText"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:textSize="25sp"
+        tools:text="65%" />
+
+    <ImageView
+        android:id="@+id/imageWind"
+        android:layout_width="@dimen/detailedLayoutImageDimen"
+        android:layout_height="@dimen/detailedLayoutImageDimen"
+        android:layout_below="@id/imageSunset"
+        android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+        android:tint="@color/secondaryText"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:src="@drawable/icon_wind" />
+
+
+    <TextView
+        android:id="@+id/txtWind"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/imageWind"
+        android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:layout_toEndOf="@id/imageWind"
+        android:textColor="@color/secondaryText"
+        android:gravity="center"
+        android:textSize="25sp"
+        tools:text="11.54 m/s" />
+
+
+    <ImageView
+        android:id="@+id/imagePressure"
+        android:layout_width="@dimen/detailedLayoutImageDimen"
+        android:layout_height="@dimen/detailedLayoutImageDimen"
+        android:layout_below="@id/imageHumidity"
+        android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+        android:tint="@color/secondaryText"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:src="@drawable/icon_pressure" />
+
+    <TextView
+        android:id="@+id/txtPressure"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/imagePressure"
+        android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:layout_toEndOf="@id/imagePressure"
+        android:textColor="@color/secondaryText"
+        android:gravity="center"
+        android:textSize="25sp"
+        tools:text="1008HPa" />
+
+
+    <ImageView
+        android:id="@+id/imageSunset"
+        android:layout_width="@dimen/detailedLayoutImageDimen"
+        android:layout_height="@dimen/detailedLayoutImageDimen"
+        android:layout_below="@+id/imageSunrise"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:tint="@color/secondaryText"
+        android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+        android:src="@drawable/icon_sunset" />
+
+    <TextView
+        android:id="@+id/txtSunset"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/imageSunset"
+        android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:layout_toEndOf="@id/imageSunset"
+        android:textColor="@color/secondaryText"
+        android:textSize="25sp"
+        tools:text="17:20" />
+
+    <ImageView
+        android:id="@+id/imageSunrise"
+        android:layout_width="@dimen/detailedLayoutImageDimen"
+        android:layout_height="@dimen/detailedLayoutImageDimen"
+        android:layout_below="@+id/txtDetailedTitle"
+        android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:tint="@color/secondaryText"
+        android:src="@drawable/icon_sunrise" />
+
+    <TextView
+        android:id="@+id/txtSunrise"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignBottom="@id/imageSunrise"
+        android:layout_marginHorizontal="@dimen/activity_horizontal_margin"
+        android:layout_marginVertical="@dimen/activity_vertical_margin"
+        android:layout_toEndOf="@id/imageSunrise"
+        android:textColor="@color/secondaryText"
+        android:textSize="25sp"
+        tools:text="06:32" />
+
+
+
+</RelativeLayout>

@@ -4,7 +4,6 @@ import android.content.Context;
 import android.support.annotation.NonNull;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentStatePagerAdapter;
 
 import org.nachosapps.weatherapplication.Fragments.DescriptionFragment;
@@ -22,6 +21,7 @@ public class CustomFragmentAdapter extends FragmentStatePagerAdapter {
     private String[] images;
     private String[] temperatures;
     private String[] dates;
+    private final int PAGE_COUNT = 2;
 
     public CustomFragmentAdapter(FragmentManager fm, Context context, String description,
             String[] images,
@@ -43,7 +43,6 @@ public class CustomFragmentAdapter extends FragmentStatePagerAdapter {
 
     @Override
     public int getCount() {
-        int PAGE_COUNT = 2;
         return PAGE_COUNT;
     }
 

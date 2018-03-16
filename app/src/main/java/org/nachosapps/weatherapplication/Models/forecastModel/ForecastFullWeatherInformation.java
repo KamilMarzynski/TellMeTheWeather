@@ -1,4 +1,4 @@
-package org.nachosapps.weatherapplication.Models.ForecastModel;
+package org.nachosapps.weatherapplication.Models.forecastModel;
 
 import java.util.List;
 

@@ -2,7 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="org.nachosapps.weatherapplication"
-    android:versionCode="24"
+    android:versionCode="25"
     android:versionName="Beta"
     tools:ignore="MissingLeanbackLauncher">
 

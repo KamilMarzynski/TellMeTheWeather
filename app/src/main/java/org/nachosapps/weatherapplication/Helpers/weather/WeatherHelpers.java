@@ -1,4 +1,4 @@
-package org.nachosapps.weatherapplication.Helpers.Weather;
+package org.nachosapps.weatherapplication.Helpers.weather;
 
 import static org.nachosapps.weatherapplication.Activities.MainActivity.NUMBER_OF_FORECAST;
 
@@ -9,8 +9,8 @@ import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 
 import org.nachosapps.weatherapplication.Common.CommonHelpers;
-import org.nachosapps.weatherapplication.Models.ForecastModel.OpenWeatherMapForecast;
-import org.nachosapps.weatherapplication.Models.CurrentWeatherModel.OpenWeatherMap;
+import org.nachosapps.weatherapplication.Models.forecastModel.OpenWeatherMapForecast;
+import org.nachosapps.weatherapplication.Models.currentWeatherModel.OpenWeatherMap;
 import org.nachosapps.weatherapplication.R;
 
 import java.lang.reflect.Type;
@@ -28,9 +28,9 @@ public class WeatherHelpers {
     private static final double HOT = 18;
     private static final String NIGHT = "night";
     private static final String DAY = "day";
-    private static final String sCOLD = "cold";
-    private static final String sMODERATE = "moderate";
-    private static final String sHOT = "hot";
+    private static final String KEY_COLD = "cold";
+    private static final String KEY_MODERATE = "moderate";
+    private static final String KEY_HOT = "hot";
 
     public static void saveWeatherInfo(OpenWeatherMap openWeatherMap, OpenWeatherMapForecast
             mOpenWeatherMapForecast, Context context) {
@@ -106,11 +106,11 @@ public class WeatherHelpers {
 
     public static String typeOfTemperature(double temp) {
         if (temp < COLD) {
-            return sCOLD;
+            return KEY_COLD;
         } else if (temp >= COLD && temp <= HOT) {
-            return sMODERATE;
+            return KEY_MODERATE;
         } else {
-            return sHOT;
+            return KEY_HOT;
         }
     }
 

@@ -1,13 +1,13 @@
-package org.nachosapps.weatherapplication.Models.ForecastModel;
+package org.nachosapps.weatherapplication.Models.currentWeatherModel;
 
 /**
- * Created by Kamil on 2018-02-27.
+ * Created by Kamil on 2018-01-16.
  */
 
-public class ForecastClouds {
+public class Clouds {
     private int all;
 
-    public ForecastClouds(int all) {
+    public Clouds(int all) {
         this.all = all;
     }
 

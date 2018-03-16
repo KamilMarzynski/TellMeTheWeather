@@ -1,7 +1,7 @@
 package org.nachosapps.weatherapplication.Activities;
 
-import static org.nachosapps.weatherapplication.Helpers.Weather.WeatherHelpers.parseForecastJson;
-import static org.nachosapps.weatherapplication.Helpers.Weather.WeatherHelpers.parseWeatherJson;
+import static org.nachosapps.weatherapplication.Helpers.weather.WeatherHelpers.parseForecastJson;
+import static org.nachosapps.weatherapplication.Helpers.weather.WeatherHelpers.parseWeatherJson;
 
 import android.Manifest;
 import android.animation.Animator;
@@ -60,12 +60,14 @@ import org.nachosapps.weatherapplication.BuildConfig;
 import org.nachosapps.weatherapplication.Common.CommonHelpers;
 import org.nachosapps.weatherapplication.Data.DatabaseUtils;
 import org.nachosapps.weatherapplication.Data.GetWeather;
-import org.nachosapps.weatherapplication.Helpers.Location.LocationHelpers;
-import org.nachosapps.weatherapplication.Helpers.Weather.WeatherConstants;
-import org.nachosapps.weatherapplication.Helpers.Weather.WeatherHelpers;
+import org.nachosapps.weatherapplication.Fragments.PopulateFragments;
+import org.nachosapps.weatherapplication.Helpers.location.LocationHelpers;
+import org.nachosapps.weatherapplication.Helpers.weather.WeatherConstants;
+import org.nachosapps.weatherapplication.Helpers.weather.WeatherHelpers;
+import org.nachosapps.weatherapplication.Interfaces.DatabaseResponse;
 import org.nachosapps.weatherapplication.Interfaces.WeatherResponse;
-import org.nachosapps.weatherapplication.Models.CurrentWeatherModel.OpenWeatherMap;
-import org.nachosapps.weatherapplication.Models.ForecastModel.OpenWeatherMapForecast;
+import org.nachosapps.weatherapplication.Models.currentWeatherModel.OpenWeatherMap;
+import org.nachosapps.weatherapplication.Models.forecastModel.OpenWeatherMapForecast;
 import org.nachosapps.weatherapplication.R;
 
 import io.fabric.sdk.android.Fabric;
@@ -84,32 +86,32 @@ public class MainActivity extends AppCompatActivity {
     TabLayout tabLayout;
     boolean isFirstCreate;
     ViewPager viewPager;
-    AppBarLayout mAppBarLayout;
+    AppBarLayout appBarLayout;
     RelativeLayout detailWeather;
     CoordinatorLayout mainLayout;
     RelativeLayout upperLayout;
     RelativeLayout fabLayout;
     ProgressBar fabProgress;
     Handler delayHandler;
-    boolean cancelFlag = false; //to check if async task GetWeather was cancelled
+    boolean noInternetConnection = false; //to check if async task GetWeather was cancelled
     RelativeLayout weatherLayout;
     OpenWeatherMap openWeatherMap = new OpenWeatherMap();
     OpenWeatherMapForecast openWeatherMapForecast = new OpenWeatherMapForecast();
-    LocationRequest mLocationRequest;
-    NestedScrollView mNestedScrollView;
+    LocationRequest locationRequest;
+    NestedScrollView nestedScrollView;
     CollapsingToolbarLayout collapsingToolbar;
-    boolean mRequestingLocationUpdates;
+    boolean requestingLocationUpdates;
     private Snackbar mSnackbar;
     boolean isSnackbarShown = false;
     public static final int NUMBER_OF_FORECAST = 7;
     private static final long HOUR_IN_MILIS = 6000 * 60;
-    public FirebaseDatabase mDatabase = FirebaseDatabase.getInstance();
+    public FirebaseDatabase database = FirebaseDatabase.getInstance();
     String[] myPermissions = {
             Manifest.permission.ACCESS_FINE_LOCATION,
             Manifest.permission.ACCESS_COARSE_LOCATION
     };
 
-    LocationCallback mLocationCallback = new LocationCallback() {
+    LocationCallback locationCallback = new LocationCallback() {
         @Override
         public void onLocationResult(LocationResult locationResult) {
             for (Location location : locationResult.getLocations()) {
@@ -134,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
         if (!checkPermissions()) {
             requestPermissions();
         } else {
-            LocationHelpers.createLocationRequest(mLocationCallback, this, mFusedLocationClient);
+            LocationHelpers.createLocationRequest(locationCallback, this, mFusedLocationClient);
             getLastLocationAndShowWeather();
         }
 
@@ -186,14 +188,14 @@ public class MainActivity extends AppCompatActivity {
 
     private void stopLocationUpdates() {
         if (mFusedLocationClient != null) {
-            mFusedLocationClient.removeLocationUpdates(mLocationCallback);
+            mFusedLocationClient.removeLocationUpdates(locationCallback);
         }
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (mRequestingLocationUpdates) {
+        if (requestingLocationUpdates) {
             startLocationUpdates();
         }
     }
@@ -209,7 +211,7 @@ public class MainActivity extends AppCompatActivity {
                     && coarseLocationPermission != PackageManager.PERMISSION_GRANTED) {
                 this.requestPermissions(myPermissions, REQUEST_CODE_PERMISSIONS
                 );
-                mFusedLocationClient.requestLocationUpdates(mLocationRequest, mLocationCallback,
+                mFusedLocationClient.requestLocationUpdates(locationRequest, locationCallback,
                         Looper.myLooper());
             }
         }
@@ -240,10 +242,10 @@ public class MainActivity extends AppCompatActivity {
         tabLayout.setTranslationX(1000);
         tabLayout.setupWithViewPager(viewPager);
 
-        mAppBarLayout = findViewById(R.id.mainAppbar);
+        appBarLayout = findViewById(R.id.mainAppbar);
 
 
-        mNestedScrollView = findViewById(R.id.scroller);
+        nestedScrollView = findViewById(R.id.scroller);
 
 
         txtHumidity = findViewById(R.id.txtHumidity);
@@ -254,8 +256,8 @@ public class MainActivity extends AppCompatActivity {
 
         fabProgress = findViewById(R.id.fabProgress);
 
-        setViewsInvisible(detailWeather, weatherLayout, viewPager, mAppBarLayout,
-                mNestedScrollView);
+        setViewsInvisible(detailWeather, weatherLayout, viewPager, appBarLayout,
+                nestedScrollView);
         setViewsVisible(fabProgress);
 
 
@@ -279,7 +281,7 @@ public class MainActivity extends AppCompatActivity {
                     delayHandler.postDelayed(new Runnable() {
                         @Override
                         public void run() {
-                            LocationHelpers.createLocationRequest(mLocationCallback,
+                            LocationHelpers.createLocationRequest(locationCallback,
                                     getApplicationContext(),
                                     mFusedLocationClient);
                             getLastLocationAndShowWeather();
@@ -295,7 +297,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        mAppBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
+        appBarLayout.addOnOffsetChangedListener(new AppBarLayout.OnOffsetChangedListener() {
 
             @RequiresApi(api = Build.VERSION_CODES.KITKAT)
             @Override
@@ -363,10 +365,26 @@ public class MainActivity extends AppCompatActivity {
             final String temperatures[] = WeatherHelpers.prepareTemperatures
                     (NUMBER_OF_FORECAST, openWeatherMapForecast, getApplicationContext());
 
-            DatabaseUtils.connectToDatabaseAndPopulateFragments(mDatabase, openWeatherMap,
-                    getSupportFragmentManager(), viewPager, this, images, temperatures, dates);
+/*            DatabaseUtils.connectToDatabaseAndPopulateFragments(database, openWeatherMap,
+                    getSupportFragmentManager(), viewPager, this, images, temperatures, dates);*/
             fab.setClickable(true);
 
+            String typeOfTemp = WeatherHelpers.typeOfTemperature(
+                    openWeatherMap.getMain().getTemp());
+            String timeOfTheDay = WeatherHelpers.timeOfTheDay(openWeatherMap.getSys().getSunrise(),
+                    openWeatherMap.getSys().getSunset());
+            String typeOfWeather = openWeatherMap.getWeather().get(0)
+                    .getMain();
+
+            DatabaseReference ref = DatabaseUtils.getReference(typeOfWeather, timeOfTheDay,
+                    typeOfTemp);
+            DatabaseUtils.connectToDatabase(ref, new DatabaseResponse() {
+                @Override
+                public void descriptionFetched(String description) {
+                    PopulateFragments.populateFragments(getSupportFragmentManager(), viewPager,
+                            getApplicationContext(), description, images, temperatures, dates);
+                }
+            });
 
         }
     }
@@ -395,17 +413,65 @@ public class MainActivity extends AppCompatActivity {
                 .ICON, "error"), this)).error(R.drawable
                 .ierror).into(mainWeatherImage);
 
-        DatabaseReference mRef = mDatabase.getReference(sharedPreferences.getString
+        DatabaseReference ref = database.getReference(sharedPreferences.getString
                 (WeatherConstants.DESCRIPTION, "could_not_load_weather"));
 
 
         String dates = sharedPreferences.getString(WeatherConstants.DATES, null);
-        String temperatures = sharedPreferences.getString(WeatherConstants.TEMPERATURES, null);
+        final String temperatures = sharedPreferences.getString(WeatherConstants.TEMPERATURES,
+                null);
         String images = sharedPreferences.getString(WeatherConstants.IMAGES, null);
 
 
-        DatabaseUtils.connectToDatabaseAndPopulateFragments(mRef, getSupportFragmentManager(),
-                viewPager, this, images, temperatures, dates, cancelFlag);
+        DatabaseUtils.connectToDatabase(ref, new DatabaseResponse() {
+            @Override
+            public void descriptionFetched(String description) {
+
+            }
+        });
+
+        if (!noInternetConnection) {
+            if (isForecastInfoSaved(sharedPreferences)) {
+                final String[] datesArray = dates.split(",");
+                final String[] temperaturesArray = temperatures.split(",");
+                final String[] imagesArray = images.split(",");
+
+                PopulateFragments.populateFragments(getSupportFragmentManager(), viewPager,
+                        getApplicationContext(), getString(R.string.no_internet), imagesArray,
+                        temperaturesArray,
+                        datesArray);
+
+            } else {
+
+                PopulateFragments.populateFragments(getSupportFragmentManager(), viewPager,
+                        getApplicationContext(), getString(R.string.no_internet));
+            }
+        } else {
+            if (isForecastInfoSaved(sharedPreferences)) {
+                final String[] datesArray = dates.split(",");
+                final String[] temperaturesArray = temperatures.split(",");
+                final String[] imagesArray = images.split(",");
+                DatabaseUtils.connectToDatabase(ref, new DatabaseResponse() {
+                    @Override
+                    public void descriptionFetched(String description) {
+                        PopulateFragments.populateFragments(getSupportFragmentManager(), viewPager,
+                                getApplicationContext(), description, imagesArray,
+                                temperaturesArray,
+                                datesArray);
+                    }
+                });
+
+            } else {
+                DatabaseUtils.connectToDatabase(ref, new DatabaseResponse() {
+                    @Override
+                    public void descriptionFetched(String description) {
+                        PopulateFragments.populateFragments(getSupportFragmentManager(), viewPager,
+                                getApplicationContext(), description);
+                    }
+                });
+            }
+        }
+
 
         loadDetailedWeatherView(weatherLayout, sharedPreferences);
         fab.setClickable(true);
@@ -423,7 +489,7 @@ public class MainActivity extends AppCompatActivity {
                         finalRadius)
                         .setDuration(600);
 
-        setViewsVisible(mAppBarLayout, mNestedScrollView);
+        setViewsVisible(appBarLayout, nestedScrollView);
 
         anim.start();
 
@@ -494,6 +560,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    boolean isForecastInfoSaved(SharedPreferences sharedPreferences) {
+        String dates = sharedPreferences.getString(WeatherConstants.DATES, null);
+        String temperatures = sharedPreferences.getString(WeatherConstants.TEMPERATURES, null);
+        String images = sharedPreferences.getString(WeatherConstants.IMAGES, null);
+
+        return dates != null && temperatures != null && images != null;
+    }
+
     @SuppressWarnings("MissingPermission")
     private void getLastLocationAndShowWeather() {
         mFusedLocationClient.getLastLocation()
@@ -512,7 +586,7 @@ public class MainActivity extends AppCompatActivity {
                                                 openWeatherMapForecast, getApplicationContext());
                                         updateViews();
                                     } else {
-                                        cancelFlag = true;
+                                        noInternetConnection = true;
                                         showSnack(R.string.no_internet, R.string.settings,
                                                 new View.OnClickListener() {
                                                     @Override
@@ -529,10 +603,10 @@ public class MainActivity extends AppCompatActivity {
                                     }
                                 }
                             }).execute(CommonHelpers
-                                            .apiRequest(
+                                            .weatherRequestUrl(
                                                     String.valueOf(mLastLocation.getLatitude()),
                                                     String.valueOf(mLastLocation.getLongitude())),
-                                    CommonHelpers.forecastApiRequest(
+                                    CommonHelpers.forecastRequestUrl(
                                             String.valueOf(mLastLocation.getLatitude()),
                                             String.valueOf(mLastLocation.getLongitude())));
                         } else {
@@ -599,7 +673,7 @@ public class MainActivity extends AppCompatActivity {
                 // receive empty arrays.
             } else if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 // Permission granted.
-                LocationHelpers.createLocationRequest(mLocationCallback, this,
+                LocationHelpers.createLocationRequest(locationCallback, this,
                         mFusedLocationClient);
                 getLastLocationAndShowWeather();
             } else {

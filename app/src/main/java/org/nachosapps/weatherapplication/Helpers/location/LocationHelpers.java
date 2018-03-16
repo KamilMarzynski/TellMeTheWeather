@@ -1,19 +1,16 @@
-package org.nachosapps.weatherapplication.Helpers.Location;
+package org.nachosapps.weatherapplication.Helpers.location;
 
 import static android.text.format.DateUtils.HOUR_IN_MILLIS;
 
 import android.Manifest;
 import android.content.Context;
 import android.content.pm.PackageManager;
-import android.location.Location;
 import android.os.Looper;
 import android.support.v4.content.ContextCompat;
 
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationCallback;
 import com.google.android.gms.location.LocationRequest;
-import com.google.android.gms.location.LocationResult;
-import com.google.android.gms.location.LocationServices;
 
 /**
  * Created by Kamil on 2018-03-06.

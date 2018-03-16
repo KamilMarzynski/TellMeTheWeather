@@ -1,4 +1,4 @@
-package org.nachosapps.weatherapplication.Helpers.Weather;
+package org.nachosapps.weatherapplication.Helpers.weather;
 
 /**
  * Created by Kamil on 2018-02-21.

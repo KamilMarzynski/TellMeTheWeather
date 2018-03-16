@@ -5,7 +5,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.view.ViewPager;
 
 import org.nachosapps.weatherapplication.Adapters.CustomFragmentAdapter;
-import org.nachosapps.weatherapplication.Helpers.Weather.WeatherHelpers;
+import org.nachosapps.weatherapplication.Helpers.weather.WeatherHelpers;
 
 /**
  * Created by Kamil on 2018-03-06.

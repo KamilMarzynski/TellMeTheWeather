@@ -1,9 +1,8 @@
 package org.nachosapps.weatherapplication.Data;
 
-import static org.nachosapps.weatherapplication.HttpClient.HttpClient.getHTTPData;
+import static org.nachosapps.weatherapplication.HTTPClient.HttpClient.getHTTPData;
 
 import android.annotation.SuppressLint;
-import android.content.Context;
 import android.os.AsyncTask;
 
 import org.nachosapps.weatherapplication.Interfaces.WeatherResponse;

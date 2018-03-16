@@ -1,14 +1,14 @@
-package org.nachosapps.weatherapplication.Models.ForecastModel;
+package org.nachosapps.weatherapplication.Models.currentWeatherModel;
 
 /**
- * Created by Kamil on 2018-02-27.
+ * Created by Kamil on 2018-01-16.
  */
 
-public class ForecastWind {
+public class Wind {
     private double speed;
-    private  double deg;
+    private double deg;
 
-    public ForecastWind(double speed, double deg) {
+    public Wind(double speed, double deg) {
         this.speed = speed;
         this.deg = deg;
     }
@@ -25,7 +25,7 @@ public class ForecastWind {
         return deg;
     }
 
-    public void setDeg(double deg) {
+    public void setDeg(int deg) {
         this.deg = deg;
     }
 }

@@ -1,14 +1,14 @@
-package org.nachosapps.weatherapplication.Models.CurrentWeatherModel;
+package org.nachosapps.weatherapplication.Models.forecastModel;
 
 /**
- * Created by Kamil on 2018-01-16.
+ * Created by Kamil on 2018-02-27.
  */
 
-public class Coord {
+public class ForecastCoord {
     private double lat;
     private double lon;
 
-    public Coord(double lat, double lon) {
+    public ForecastCoord(double lat, double lon) {
         this.lat = lat;
         this.lon = lon;
     }
